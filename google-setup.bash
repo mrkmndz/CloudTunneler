@@ -10,4 +10,14 @@ curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 # Update the package list and install the Cloud SDK
 sudo apt-get update && sudo apt-get install google-cloud-sdk
 
+# initialize SDK
 gcloud init --console-only
+
+# save login credentials in json file for later use in python lib
+gcloud auth application-default login
+
+# install python
+sudo apt-get install python-pip
+
+# Install the google-api-python-client library
+sudo pip install --upgrade google-api-python-client
