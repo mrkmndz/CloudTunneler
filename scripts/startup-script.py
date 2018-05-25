@@ -25,7 +25,7 @@ def create_internal_wireguard_config(settings):
             "[Peer]\n"
             "PublicKey = {their_internal_public_key}\n"
             "Endpoint = {their_vpc_address}\n"
-            "AllowedIPs = {their_internal_wg_ip_address}, {their_cidr}").format(**settings)
+            "AllowedIPs = {their_internal_wg_ip}, {their_cidr}").format(**settings)
 
 def create_external_wireguard_config(settings):
     return ("[Interface]\n"
@@ -41,7 +41,19 @@ def main():
     sys.stderr = open("~/startup-script.out", "w+")
 
     # get settings
-    all_settings = [] # TODO
+    all_settings = ["my_internal_wg_ip",
+                    "their_cidr",
+                    "their_internal_wg_ip",
+                    "their_external_wg_ip",
+                    "my_external_wg_ip",
+                    "our_cidr",
+                    "my_internal_private_key",
+                    "my_internal_port",
+                    "their_internal_public_key",
+                    "their_vpc_address",
+                    "our_external_private_key",
+                    "our_external_port",
+                    "our_clients_public_key"]
     settings = {}
     for setting in all_settings:
         settings[setting] = requests.get("http://metadata/computeMetadata/v1/instance/attributes/%s" % setting,
