@@ -35,7 +35,7 @@ def list_instances(compute, project, zone):
 
 
 # [START create_instance]
-def create_instance(compute, project, zone, name, imageID, vcpus):
+def create_instance(compute, project, zone, name, imageID, vcpus, script, script_params):
     # https://www.googleapis.com/compute/v1/projects/{project}/global/images/{resourceId}
     image_response = compute.images().get(project=project, image=imageID).execute()
     source_disk_image = image_response['selfLink']
@@ -45,6 +45,9 @@ def create_instance(compute, project, zone, name, imageID, vcpus):
     startup_script = open(
         os.path.join(
             os.path.dirname(__file__), 'startup-script.sh'), 'r').read()
+
+    script_params["startup-script"] = startup_script
+    metadata = [{"key": k, "value": v} for k, v in script_params.iteritems()]
 
     config = {
         'name': name,
@@ -82,12 +85,7 @@ def create_instance(compute, project, zone, name, imageID, vcpus):
         # Metadata is readable from the instance and allows you to
         # pass configuration from deployment scripts to instances.
         'metadata': {
-            'items': [{
-                # Startup script is automatically executed by the
-                # instance upon startup.
-                'key': 'startup-script',
-                'value': startup_script
-            }]
+            'items': metadata
         },
 
         # allow packet routing
@@ -135,7 +133,7 @@ def main(project, zone, instance_name, imageID, vcpus,  wait=True):
 
     print('Creating instance.')
 
-    operation = create_instance(compute, project, zone, instance_name, imageID, vcpus)
+    operation = create_instance(compute, project, zone, instance_name, imageID, vcpus, script, script_params)
 
     instances = list_instances(compute, project, zone)
 
