@@ -78,6 +78,16 @@ def main():
                 "our_external_port":"3002",
                 "our_clients_public_key":"V7Xk17ue208HvTP+HATwbTqCTwl5am10z1TQeIRKmB8="#TODO
             }
+    def swap(pa, pb):
+        settings[pa], settings[pb] = settings[pb], settings[pa]
+    swap("my_internal_wg_ip", "their_internal_wg_ip")
+    swap("my_external_wg_ip", "their_external_wg_ip")
+    swap("their_cidr", "our_cidr")
+    settings["my_internal_private_key"] = "kOQXfqm+YFBSR7erwNLNezahoLGrHJwbiYgbxnV5/Ww="
+    settings["our_external_private_key"] = "kOQXfqm+YFBSR7erwNLNezahoLGrHJwbiYgbxnV5/Ww="
+    settings["their_internal_public_key"] = "5QXBOMtztySA4E1y2DgwI500+uXpcOhljPyEfWtdlzE="
+    settings["our_clients_public_key"] = "PEyAxX9TkfUZL6WtT5Wom/vUBLU58Q+Bm96HOoS8GC8="
+    settings["their_vpc_address"] = "10.154.0.2"
     # for setting in all_settings:
     #     settings[setting] = requests.get("http://metadata/computeMetadata/v1/instance/attributes/%s" % setting,
     #                                         headers={"Metadata-Flavor: Google"})
