@@ -6,6 +6,7 @@ from subprocess import call as real_call
 import sys
 import json
 from pprint import pprint
+import os
 
 def call(*args, **kwargs):
     print args
@@ -46,4 +47,7 @@ def main():
     start_wg_interface(config["my_ip"], config["wan_cidr"], wg_config)
 
 if __name__ == '__main__':
+    if os.getuid() != 0:
+        print "must run as root user"
+        exit(1)
     main()
