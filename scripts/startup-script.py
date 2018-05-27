@@ -44,8 +44,8 @@ def create_external_wireguard_config(settings):
 
 def main():
     # send output to file
-    # sys.stdout = open("startup-script.out", "w+")
-    # sys.stderr = open("startup-script.out", "w+")
+    sys.stdout = open("startup-script.out", "w+")
+    sys.stderr = open("startup-script.out", "w+")
 
     # get settings
     all_settings = ["my_internal_wg_ip",
@@ -62,35 +62,9 @@ def main():
                     "our_external_private_key",
                     "our_external_port",
                     "our_clients_public_key"]
-    settings = {
-                "my_internal_wg_ip": "192.168.0.2",
-                "their_cidr":"192.168.1.0/24",
-                "their_internal_wg_ip":"192.168.0.3",
-                "their_external_wg_ip":"192.168.0.4",
-                "my_external_wg_ip":"192.168.0.5",
-                "our_cidr":"192.168.2.0/24",
-                "my_internal_private_key":"GHSS1c/i6IWEZ5KDiGfivsO9keNoHN5KS7M+Wrjmq18=",#TODO
-                "my_internal_port":"3005",
-                "their_internal_public_key":"mSIHl0o0U6n9QDEptYCypaL4DCWC3ipN1nmIYZaa3A0=",#TODO
-                "their_vpc_address":"10.138.0.2",#TODO
-                "their_internal_port":"3005",
-                "our_external_private_key": "GHSS1c/i6IWEZ5KDiGfivsO9keNoHN5KS7M+Wrjmq18=",#TODO
-                "our_external_port":"3002",
-                "our_clients_public_key":"V7Xk17ue208HvTP+HATwbTqCTwl5am10z1TQeIRKmB8="#TODO
-            }
-    def swap(pa, pb):
-        settings[pa], settings[pb] = settings[pb], settings[pa]
-    swap("my_internal_wg_ip", "their_internal_wg_ip")
-    swap("my_external_wg_ip", "their_external_wg_ip")
-    swap("their_cidr", "our_cidr")
-    settings["my_internal_private_key"] = "kOQXfqm+YFBSR7erwNLNezahoLGrHJwbiYgbxnV5/Ww="
-    settings["our_external_private_key"] = "kOQXfqm+YFBSR7erwNLNezahoLGrHJwbiYgbxnV5/Ww="
-    settings["their_internal_public_key"] = "5QXBOMtztySA4E1y2DgwI500+uXpcOhljPyEfWtdlzE="
-    settings["our_clients_public_key"] = "PEyAxX9TkfUZL6WtT5Wom/vUBLU58Q+Bm96HOoS8GC8="
-    settings["their_vpc_address"] = "10.154.0.2"
-    # for setting in all_settings:
-    #     settings[setting] = requests.get("http://metadata/computeMetadata/v1/instance/attributes/%s" % setting,
-    #                                         headers={"Metadata-Flavor: Google"})
+    for setting in all_settings:
+        settings[setting] = requests.get("http://metadata/computeMetadata/v1/instance/attributes/%s" % setting,
+                                            headers={"Metadata-Flavor: Google"})
 
     # allow ip forwarding
     call("sudo sysctl -w net.ipv4.ip_forward=1", shell=True)
