@@ -15,7 +15,7 @@ def create_instance(compute, project, zone, name, imageID, vcpus, script, script
     machine_type = "zones/%s/machineTypes/n1-standard-%d" % (zone, vcpus)
     startup_script = open(
         os.path.join(
-            os.path.dirname(__file__), 'startup-script.sh'), 'r').read()
+            os.path.dirname(__file__), script), 'r').read()
 
     script_params["startup-script"] = startup_script
     metadata = [{"key": k, "value": v} for k, v in script_params.iteritems()]
@@ -93,41 +93,57 @@ def wait_for_operation(compute, project, zone, operation):
         time.sleep(1)
 
 
-def main(project, zone, instance_name, imageID, vcpus,  wait=True):
+def expand_link(link):
     compute = googleapiclient.discovery.build('compute', 'v1')
 
-    print('Creating instance.')
+    print('Creating instances.')
 
-    operation = create_instance(compute, project, zone, instance_name, imageID, vcpus, script, script_params)
+    imageID = "just-wireguard"
+    vcpus = 1
+    prefix = str(int(time.time()))
+    script =  "startup-script.py"
 
-    instances = list_instances(compute, project, zone)
-
-    print('Instances in project %s and zone %s:' % (project, zone))
-    for instance in instances:
-        print(' - ' + instance['name'])
-
-    if wait:
-        input()
-
-    print('Deleting instance.')
-
-    operation = delete_instance(compute, project, zone, instance_name)
-    wait_for_operation(compute, project, zone, operation['name'])
+    internalApublic, internalAprivate = keygen()
+    internalBpublic, internalBprivate = keygen()
+    script_paramsA = {
+                "my_internal_wg_ip": "192.168.0.2",
+                "their_internal_wg_ip":"192.168.0.3",
+                "their_external_wg_ip":"192.168.0.4",
+                "my_external_wg_ip":"192.168.0.5",
+                "our_cidr": link.clientA.cidr,
+                "their_cidr": link.clientB.cidr,
+                "my_internal_port":"3005",
+                "their_internal_port":"3005",
+                "our_external_port":"3002",
+                "my_internal_private_key": internalAprivate,
+                "their_internal_public_key": internalBpublic,
+                "our_external_private_key": link.external_private_key_A,
+                "our_clients_public_key": link.clientA.public_key,
+                "their_vpc_address":"10.138.0.2"#TODO!!!!!
+            }
+    script_paramsA = {
+                "my_internal_wg_ip":"192.168.0.3",
+                "their_internal_wg_ip": "192.168.0.2",
+                "their_external_wg_ip":"192.168.0.5",
+                "my_external_wg_ip":"192.168.0.4",
+                "our_cidr": link.clientB.cidr,
+                "their_cidr": link.clientA.cidr,
+                "my_internal_port":"3005",
+                "their_internal_port":"3005",
+                "our_external_port":"3002",
+                "my_internal_private_key": internalBprivate,
+                "their_internal_public_key": internalApublic,
+                "our_external_private_key": link.external_private_key_B,
+                "our_clients_public_key": link.clientB.public_key,
+                "their_vpc_address":"10.138.0.2"#TODO!!!!!
+            }
+    operationA = create_instance(compute, link.project, link.zoneA, prefix + "A", imageID, vcpus, script, script_paramsA)
+    operationB = create_instance(compute, link.project, link.zoneB, prefix + "B", imageID, vcpus, script, script_paramsB)
+    wait_for_operation(compute, link.project, link.zoneA, operationA['name'])
+    wait_for_operation(compute, link.project, link.zoneB, operationB['name'])
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('project_id', help='Your Google Cloud project ID.')
-    parser.add_argument(
-        '--zone',
-        default='us-central1-f',
-        help='Compute Engine zone to deploy to.')
-    parser.add_argument(
-        '--name', default='demo-instance', help='New instance name.')
-
-    args = parser.parse_args()
-
-    main(args.project_id, args.zone, args.name, "just-wireguard", 1)
+    # create link
+    expand_link(link)
 
