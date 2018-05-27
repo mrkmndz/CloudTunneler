@@ -4,7 +4,19 @@ import time
 
 import googleapiclient.discovery
 from six.moves import input
+from link import Link, Client
+from pprint import pprint
 
+def reserve_vpc_ip(compute, project, region, instance_name):
+    body = {
+                "name": "ip-" + instance_name,
+                "addressType": "INTERNAL"
+            }
+    operation = compute.addresses().insert(project=project, region=region, body=body).execute()
+    # TODO cb/ promises
+    wait_for_region_operation(compute, project, region, operation['name'])
+    resp = compute.addresses().get(project=project, region=region, address=body["name"]).execute()
+    return resp["address"]
 
 def create_instance(compute, project, zone, name, imageID, vcpus, script, script_params):
     # https://www.googleapis.com/compute/v1/projects/{project}/global/images/{resourceId}
@@ -76,7 +88,7 @@ def delete_instance(compute, project, zone, name):
         instance=name).execute()
 
 
-def wait_for_operation(compute, project, zone, operation):
+def wait_for_zone_operation(compute, project, zone, operation):
     print('Waiting for operation to finish...')
     while True:
         result = compute.zoneOperations().get(
@@ -92,15 +104,36 @@ def wait_for_operation(compute, project, zone, operation):
 
         time.sleep(1)
 
+def wait_for_region_operation(compute, project, region, operation):
+    print('Waiting for operation to finish...')
+    while True:
+        result = compute.regionOperations().get(
+            project=project,
+            region=region,
+            operation=operation).execute()
+
+        if result['status'] == 'DONE':
+            print("done.")
+            if 'error' in result:
+                raise Exception(result['error'])
+            return result
+
+        time.sleep(1)
 
 def expand_link(link):
     compute = googleapiclient.discovery.build('compute', 'v1')
+    prefix = str(int(time.time()))
+
+    ipA = reserve_vpc_ip(compute, link.project, link.regionA, prefix + "a")
+    ipB = reserve_vpc_ip(compute, link.project, link.regionB, prefix + "b")
+    pprint(ipA)
+    pprint(ipB)
+    return
 
     print('Creating instances.')
 
     imageID = "just-wireguard"
     vcpus = 1
-    prefix = str(int(time.time()))
     script =  "startup-script.py"
 
     internalApublic, internalAprivate = keygen()
@@ -119,9 +152,9 @@ def expand_link(link):
                 "their_internal_public_key": internalBpublic,
                 "our_external_private_key": link.external_private_key_A,
                 "our_clients_public_key": link.clientA.public_key,
-                "their_vpc_address":"10.138.0.2"#TODO!!!!!
+                "their_vpc_address": ipB
             }
-    script_paramsA = {
+    script_paramsB = {
                 "my_internal_wg_ip":"192.168.0.3",
                 "their_internal_wg_ip": "192.168.0.2",
                 "their_external_wg_ip":"192.168.0.5",
@@ -135,15 +168,26 @@ def expand_link(link):
                 "their_internal_public_key": internalApublic,
                 "our_external_private_key": link.external_private_key_B,
                 "our_clients_public_key": link.clientB.public_key,
-                "their_vpc_address":"10.138.0.2"#TODO!!!!!
+                "their_vpc_address": ipA
             }
-    operationA = create_instance(compute, link.project, link.zoneA, prefix + "A", imageID, vcpus, script, script_paramsA)
-    operationB = create_instance(compute, link.project, link.zoneB, prefix + "B", imageID, vcpus, script, script_paramsB)
+    operationA = create_instance(compute, link.project, link.zoneA, prefix + "a", imageID, vcpus, script, script_paramsA)
+    operationB = create_instance(compute, link.project, link.zoneB, prefix + "b", imageID, vcpus, script, script_paramsB)
     wait_for_operation(compute, link.project, link.zoneA, operationA['name'])
     wait_for_operation(compute, link.project, link.zoneB, operationB['name'])
 
 
 if __name__ == '__main__':
     # create link
+    link = Link("proj-204902",
+                "us-west1",
+                "europe-west2", 
+                "from-oregon-to-london",
+                "from-london-to-oregon",
+                "us-west1-b",
+                "europe-west2-a",
+                Client("192.168.1.0/24", "PEyAxX9TkfUZL6WtT5Wom/vUBLU58Q+Bm96HOoS8GC8="),
+                Client("192.168.2.0/24", "V7Xk17ue208HvTP+HATwbTqCTwl5am10z1TQeIRKmB8=")
+            )
+
     expand_link(link)
 
