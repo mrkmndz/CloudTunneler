@@ -62,9 +62,10 @@ def main():
                     "our_external_private_key",
                     "our_external_port",
                     "our_clients_public_key"]
+    settings = {}
     for setting in all_settings:
         settings[setting] = requests.get("http://metadata/computeMetadata/v1/instance/attributes/%s" % setting,
-                                            headers={"Metadata-Flavor: Google"})
+                                            headers={"Metadata-Flavor": "Google"}).text
 
     # allow ip forwarding
     call("sudo sysctl -w net.ipv4.ip_forward=1", shell=True)

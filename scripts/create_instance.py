@@ -6,6 +6,7 @@ import googleapiclient.discovery
 from six.moves import input
 from link import Link, Client
 from pprint import pprint
+from subprocess import call
 
 def reserve_vpc_ip(compute, project, region, instance_name):
     body = {
@@ -120,15 +121,23 @@ def wait_for_region_operation(compute, project, region, operation):
 
         time.sleep(1)
 
+def keygen():
+    call("wg genkey | tee privatekey | wg pubkey > publickey", shell=True)
+    with open("privatekey", "r") as f:
+        private_key = f.read()
+    with open("publickey", "r") as f:
+        public_key = f.read()
+    return public_key[:-1], private_key[:-1]
+
+
 def expand_link(link):
     compute = googleapiclient.discovery.build('compute', 'v1')
-    prefix = str(int(time.time()))
+    prefix = "hi" + str(int(time.time()))
 
     ipA = reserve_vpc_ip(compute, link.project, link.regionA, prefix + "a")
     ipB = reserve_vpc_ip(compute, link.project, link.regionB, prefix + "b")
     pprint(ipA)
     pprint(ipB)
-    return
 
     print('Creating instances.')
 
@@ -150,7 +159,7 @@ def expand_link(link):
                 "our_external_port":"3002",
                 "my_internal_private_key": internalAprivate,
                 "their_internal_public_key": internalBpublic,
-                "our_external_private_key": link.external_private_key_A,
+                "our_external_private_key": link.external_private_keyA,
                 "our_clients_public_key": link.clientA.public_key,
                 "their_vpc_address": ipB
             }
@@ -166,14 +175,14 @@ def expand_link(link):
                 "our_external_port":"3002",
                 "my_internal_private_key": internalBprivate,
                 "their_internal_public_key": internalApublic,
-                "our_external_private_key": link.external_private_key_B,
+                "our_external_private_key": link.external_private_keyB,
                 "our_clients_public_key": link.clientB.public_key,
                 "their_vpc_address": ipA
             }
     operationA = create_instance(compute, link.project, link.zoneA, prefix + "a", imageID, vcpus, script, script_paramsA)
     operationB = create_instance(compute, link.project, link.zoneB, prefix + "b", imageID, vcpus, script, script_paramsB)
-    wait_for_operation(compute, link.project, link.zoneA, operationA['name'])
-    wait_for_operation(compute, link.project, link.zoneB, operationB['name'])
+    wait_for_zone_operation(compute, link.project, link.zoneA, operationA['name'])
+    wait_for_zone_operation(compute, link.project, link.zoneB, operationB['name'])
 
 
 if __name__ == '__main__':
@@ -186,7 +195,11 @@ if __name__ == '__main__':
                 "us-west1-b",
                 "europe-west2-a",
                 Client("192.168.1.0/24", "PEyAxX9TkfUZL6WtT5Wom/vUBLU58Q+Bm96HOoS8GC8="),
-                Client("192.168.2.0/24", "V7Xk17ue208HvTP+HATwbTqCTwl5am10z1TQeIRKmB8=")
+                Client("192.168.2.0/24", "V7Xk17ue208HvTP+HATwbTqCTwl5am10z1TQeIRKmB8="),
+                "uAQZLoJJFJfEP7HmHdwhOmIrNaQ5HFtN4bxwOaFw4Gk=",
+                # pubkey sSZRAEzYMKv8KVdnXdiKWqRWvK4GvgTog8XgS+yWDBI=
+                "eOnUcSdci+B2lTEN+XhATLlU+Jm9TTurePnmXJtKy1k="
+                # pubkey vkTIgND+JmGeywcVLowaj4Q2f7CSgr0qhHu6rNbzAw8=
             )
 
     expand_link(link)
