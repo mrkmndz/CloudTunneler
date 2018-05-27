@@ -13,6 +13,13 @@ class GCPController(object):
         self.compute = googleapiclient.discovery.build('compute', 'v1')
         self.project = project # constant for all operations
 
+    def create_pool(self, src_region, dst_region):
+        body = {"name": "from-%s-to-%s-pool" % (src_region, dst_region)}
+        operation = self.compute.targetPools().insert(project=self.project,
+                                                      region=src_region,
+                                                      body=body).execute()
+        self.wait_for_region_operation(src_region, operation["name"])
+
     def reserve_vpc_ip(self, region, instance_name):
         body = {
                     "name": "ip-" + instance_name,

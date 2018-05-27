@@ -12,9 +12,6 @@ from gcp_controller import GCPController
 from pprint import pprint
 PROJECT = "cloudtunneler"
 
-def create_pool(project, region):
-    return "tmp"
-
 def create_client():
     return Client(cidr="test", public_key="test")
 
@@ -63,7 +60,7 @@ def main(config_file):
 
 if __name__ == '__main__':
     gcp = GCPController(PROJECT)
-    print gcp.reserve_vpc_ip("us-west1", "testinstance4")
+    gcp.create_pool("us-west1", "europe-west2")
     exit(0)
     parser = argparse.ArgumentParser(
         description=__doc__,
