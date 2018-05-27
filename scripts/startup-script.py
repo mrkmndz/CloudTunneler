@@ -32,7 +32,7 @@ def create_internal_wireguard_config(settings):
             "[Peer]\n"
             "PublicKey = {their_internal_public_key}\n"
             "Endpoint = {their_vpc_address}:{their_internal_port}\n"
-            "AllowedIPs = {their_internal_wg_ip}, {their_cidr}").format(**settings)
+            "AllowedIPs = {their_external_wg_ip}, {their_internal_wg_ip}, {their_cidr}").format(**settings)
 
 def create_external_wireguard_config(settings):
     return ("[Interface]\n"
