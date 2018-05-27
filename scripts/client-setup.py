@@ -1,9 +1,11 @@
 #! /usr/bin/python
 
+import argparse
 import requests
 from subprocess import call as real_call
 import sys
 import json
+from pprint import pprint
 
 def call(*args, **kwargs):
     print args
@@ -22,17 +24,25 @@ def create_wireguard_config(wan_config):
                 "PrivateKey = {my_private_key}\n"
                 "ListenPort = {my_port}\n").format(**wan_config)
     for link in wan_config["links"]:
+        cidrs = ", ".join(link["allowed_ips"])
         conf_str += ("[Peer]\n"
             "PublicKey = {public_key}\n"
             "Endpoint = {ip_addr}:{port}\n"
-            "AllowedIPs = {allowed_ips}\n").format(**link, allowed_ips=link.cidrs.join(", "))
+            "AllowedIPs = {cidrs}\n").format(cidrs=cidrs, **link)
     return conf_str
 
 def main():
-    with open("config.json", "r") as f:
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('config', help='Your tWANg config')
+    args = parser.parse_args()
+    with open(args.config, "r") as f:
         config = json.load(f)
+    pprint(config)
+    wg_config = "wan.config"
     with open(wg_config, "w+") as f:
-        f.write(create_wireguard_config(config)
+        f.write(create_wireguard_config(config))
     start_wg_interface(config["my_ip"], config["wan_cidr"], wg_config)
 
 if __name__ == '__main__':
