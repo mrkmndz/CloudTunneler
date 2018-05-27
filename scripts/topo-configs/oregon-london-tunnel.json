@@ -3,12 +3,16 @@
     {
       "name": "us-west1",
       "zone": "us-west1-b",
-      "client_subnet": "..."
+      "clients": [
+        "..."
+       ]
     },
     {
       "name": "europe-west2",
       "zone": "europe-west2-b",
-      "client_subnet": "..."
+      "clients": [
+        "..."
+       ]
     }
   ]
 }
