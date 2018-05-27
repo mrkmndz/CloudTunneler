@@ -60,7 +60,6 @@ def main(config_file):
 
 if __name__ == '__main__':
     gcp = GCPController(PROJECT)
-    gcp.create_pool("us-west1", "europe-west2")
     exit(0)
     parser = argparse.ArgumentParser(
         description=__doc__,

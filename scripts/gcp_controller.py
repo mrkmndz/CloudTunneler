@@ -13,6 +13,14 @@ class GCPController(object):
         self.compute = googleapiclient.discovery.build('compute', 'v1')
         self.project = project # constant for all operations
 
+    def delete_all(self, compute_resource, compute_resource_name, region):
+        resp = compute_resource.list(project=self.project, region=region).execute()
+        for item in resp["items"]:
+            print "deleting", compute_resource_name, item["name"]
+            args = {compute_resource_name: item["name"], "project": self.project, "region": region}
+            compute_resource.delete(**args).execute()
+
+
     def create_pool(self, src_region, dst_region):
         body = {"name": "from-%s-to-%s-pool" % (src_region, dst_region)}
         operation = self.compute.targetPools().insert(project=self.project,
