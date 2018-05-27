@@ -6,7 +6,7 @@ import googleapiclient.discovery
 from six.moves import input
 from link import Link, Client
 from pprint import pprint
-from subprocess import call
+import subprocess
 
 def reserve_vpc_ip(compute, project, region, instance_name):
     body = {
