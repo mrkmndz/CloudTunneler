@@ -1,0 +1,14 @@
+{
+    "my_ip": "192.168.2.14",
+    "wan_cidr": "192.168.0.0/16",
+    "my_private_key": "eGnEcfq2OHZundu1TSkpfsQ6fAyO5PjbvIZjNMMU4GA=",
+    "my_port": 5001,
+    "links": [
+        {
+            "public_key": "5QXBOMtztySA4E1y2DgwI500+uXpcOhljPyEfWtdlzE=",
+            "ip_addr": "35.197.214.126",
+            "port": "3002",
+            "allowed_ips": ["192.168.0.0/16"]
+        }
+    ]
+}
