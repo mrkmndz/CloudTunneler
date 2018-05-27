@@ -4,11 +4,11 @@ import time
 
 import googleapiclient.discovery
 from six.moves import input
-from link import Link, Client
 from pprint import pprint
 import subprocess
+from util import *
 
-def GCPController(object):
+class GCPController(object):
     def __init__(self, project):
         self.compute = googleapiclient.discovery.build('compute', 'v1')
         self.project = project # constant for all operations
@@ -20,7 +20,7 @@ def GCPController(object):
                 }
         operation = self.compute.addresses().insert(project=self.project, region=region, body=body).execute()
         # TODO cb/ promises
-        wait_for_region_operation(compute, self.project, region, operation['name'])
+        self.wait_for_region_operation(region, operation['name'])
         resp = self.compute.addresses().get(project=self.project, region=region, address=body["name"]).execute()
         return resp["address"]
 
@@ -87,7 +87,7 @@ def GCPController(object):
             body=config).execute()
 
 
-    def delete_instance(self, compute, zone, name):
+    def delete_instance(self, zone, name):
         return self.compute.instances().delete(
             project=self.project,
             zone=zone,
@@ -136,11 +136,10 @@ def GCPController(object):
 
 
     def expand_link(self, link):
-        compute = googleapiclient.discovery.build('compute', 'v1')
-        prefix = "hi" + str(int(time.time()))
+        prefix = "rt" + str(int(time.time()))
 
-        ipA = reserve_vpc_ip(compute, link.project, link.regionA, prefix + "a")
-        ipB = reserve_vpc_ip(compute, link.project, link.regionB, prefix + "b")
+        ipA = self.reserve_vpc_ip(link.project, link.regionA, prefix + "a")
+        ipB = self.reserve_vpc_ip(link.project, link.regionB, prefix + "b")
         pprint(ipA)
         pprint(ipB)
 
@@ -150,8 +149,8 @@ def GCPController(object):
         vcpus = 1
         script =  "startup-script.py"
 
-        internalApublic, internalAprivate = keygen()
-        internalBpublic, internalBprivate = keygen()
+        internalApublic, internalAprivate = self.keygen()
+        internalBpublic, internalBprivate = self.keygen()
         script_paramsA = {
                     "my_internal_wg_ip": "192.168.0.2",
                     "their_internal_wg_ip":"192.168.0.3",
@@ -184,10 +183,10 @@ def GCPController(object):
                     "our_clients_public_key": link.clientB.public_key,
                     "their_vpc_address": ipA
                 }
-        operationA = create_instance(compute, link.project, link.zoneA, prefix + "a", imageID, vcpus, script, script_paramsA)
-        operationB = create_instance(compute, link.project, link.zoneB, prefix + "b", imageID, vcpus, script, script_paramsB)
-        wait_for_zone_operation(compute, link.project, link.zoneA, operationA['name'])
-        wait_for_zone_operation(compute, link.project, link.zoneB, operationB['name'])
+        operationA = self.create_instance(link.project, link.zoneA, prefix + "a", imageID, vcpus, script, script_paramsA)
+        operationB = self.create_instance(link.project, link.zoneB, prefix + "b", imageID, vcpus, script, script_paramsB)
+        self.wait_for_zone_operation(link.project, link.zoneA, operationA['name'])
+        self.wait_for_zone_operation(link.project, link.zoneB, operationB['name'])
 
 
 # if __name__ == '__main__':
