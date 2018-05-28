@@ -34,6 +34,11 @@ def init_pool(src_region, dst_region):
     pool_name = gcp.create_pool(src_region, dst_region)
     # create forwarding rule
     gcp.forward_to_pool(pool_name, src_region)
+    # create pool
+    pool_name = gcp.create_pool(dst_region, src_region)
+    # create forwarding rule
+    gcp.forward_to_pool(pool_name, dst_region)
+
     return pool_name
 
 def main(config_file):
