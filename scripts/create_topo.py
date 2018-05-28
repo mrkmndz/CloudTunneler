@@ -7,26 +7,26 @@ from six.moves import input
 from pprint import pprint
 from subprocess import call
 import json
-from util import *
 from gcp_controller import GCPController
 from pprint import pprint
+from link import Client, Link
 PROJECT = "cloudtunneler"
 
 def create_client():
-    return Client(cidr="test", public_key="test")
+    return Client("test", "test")
 
-def create_link(regionA, regionB, pools, clients):
-    link = Link(project=PROJECT,
-                regionA=regionA["name"],
-                regionB=regionB["name"],
-                poolA=pools[regionA["name"]],
-                poolB=pools[regionB["name"]],
-                zoneA=regionA["zone"],
-                zoneB=regionB["zone"],
-                clientA=clients[regionA["name"]],
-                clientB=clients[regionB["name"]],
-                external_private_keyA="tmp",
-                external_private_keyB="tmp")
+def create_link(project, regionA, regionB, pools, clients):
+    link = Link(project,
+                regionA["name"],
+                regionB["name"],
+                pools[regionA["name"]],
+                pools[regionB["name"]],
+                regionA["zone"],
+                regionB["zone"],
+                clients[regionA["name"]],
+                clients[regionB["name"]],
+                "tmp",
+                "tmp")
     return link
 
 def init_pools(gcp, src_region, dst_region):
@@ -69,7 +69,7 @@ def main(config_file):
                                                                                    regionA["name"],
                                                                                    regionB["name"],
                                                                                    pools)
-                link = create_link(regionA, regionB, pools, clients)
+                link = create_link(gcp.project, regionA, regionB, pools, clients)
                 pprint(link)
                 # expand_link(link)
 
