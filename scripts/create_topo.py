@@ -44,9 +44,9 @@ def init_pools(gcp, src_region, dst_region):
     return pool_nameA, pool_nameB
 
 def main(config_file):
-    gcp = GCPController("proj-204902")
     with open(config_file, "r") as f:
         config = json.load(f)
+    gcp = GCPController(config["project"])
 
     # TODO more efficient way to wait for operations
     clients = {} # dict of all client objects... region -> client
