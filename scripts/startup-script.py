@@ -3,6 +3,7 @@
 import requests
 from subprocess import call as real_call
 import sys
+import json
 
 def call(*args, **kwargs):
     print args
@@ -26,21 +27,25 @@ def start_wg_interface(is_internal, config, settings):
         call("sudo ip route add {our_cidr} dev {iname}".format(iname=iface_name, **settings), shell=True)
 
 def create_internal_wireguard_config(settings):
+    their_clients_ips_str = ", ".join([c["ip"] for c in settings["their_clients"]])
     return ("[Interface]\n"
             "PrivateKey = {my_internal_private_key}\n"
             "ListenPort = {my_internal_port}\n"
             "[Peer]\n"
             "PublicKey = {their_internal_public_key}\n"
             "Endpoint = {their_vpc_address}:{their_internal_port}\n"
-            "AllowedIPs = {their_external_wg_ip}, {their_internal_wg_ip}, {their_cidr}").format(**settings)
+            "AllowedIPs = {their_external_wg_ip}, {their_internal_wg_ip}, {their_clients_ips}").format(**settings, 
+                                                        their_clients_ips=their_client_ips_str)
 
 def create_external_wireguard_config(settings):
-    return ("[Interface]\n"
+    config = ("[Interface]\n"
             "PrivateKey = {our_external_private_key}\n"
-            "ListenPort = {our_external_port}\n"
-            "[Peer]\n"
-            "PublicKey = {our_clients_public_key}\n"
-            "AllowedIPs = {our_cidr}").format(**settings)
+            "ListenPort = {our_external_port}\n").format(**settings)
+
+    for client in settings["our_clients"]:
+        config += ("[Peer]\n"
+                   "PublicKey = {public_key}\n"
+                   "AllowedIPs = {ip}\n").format(**client)
 
 def main():
     # send output to file
@@ -49,23 +54,25 @@ def main():
 
     # get settings
     all_settings = ["my_internal_wg_ip",
-                    "their_cidr",
                     "their_internal_wg_ip",
                     "their_external_wg_ip",
                     "my_external_wg_ip",
-                    "our_cidr",
-                    "my_internal_private_key",
                     "my_internal_port",
-                    "their_internal_public_key",
-                    "their_vpc_address",
                     "their_internal_port",
-                    "our_external_private_key",
                     "our_external_port",
-                    "our_clients_public_key"]
+                    "my_internal_private_key",
+                    "their_internal_public_key",
+                    "our_external_private_key",
+                    "their_vpc_address",
+                    "our_clients",
+                    "their_clients"]
     settings = {}
     for setting in all_settings:
         settings[setting] = requests.get("http://metadata/computeMetadata/v1/instance/attributes/%s" % setting,
                                             headers={"Metadata-Flavor": "Google"}).text
+
+    settings["our_clients"] = json.loads(settings["our_clients"])
+    settings["their_clients"] = json.loads(settings["their_clients"])
 
     # allow ip forwarding
     call("sudo sysctl -w net.ipv4.ip_forward=1", shell=True)

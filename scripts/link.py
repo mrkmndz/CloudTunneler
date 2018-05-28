@@ -6,6 +6,11 @@ class Client(object):
         self.ip = ip
         self.public_key, self.private_key = keygen()
 
+    def data(self):
+        return {"ip": self.ip,
+            "public_key": self.public_key,
+            "private_key": self.private_key}
+
 class Pool(object):
     def __init__(self, name, ip):
         self.name = name

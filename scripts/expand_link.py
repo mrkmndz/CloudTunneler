@@ -11,8 +11,11 @@ import os
 def expand_link(controller, link):
     prefix = "rt" + str(int(time.time()))
 
-    ipA = controller.reserve_vpc_ip(link.regionA, prefix + "a")
-    ipB = controller.reserve_vpc_ip(link.regionB, prefix + "b")
+    rga = link.router_group_a
+    rgb = link.router_group_b
+
+    ipA = controller.reserve_vpc_ip(rga.region, prefix + "a")
+    ipB = controller.reserve_vpc_ip(rgb.region, prefix + "b")
     pprint(ipA)
     pprint(ipB)
 
@@ -25,6 +28,8 @@ def expand_link(controller, link):
 
     internalApublic, internalAprivate = keygen()
     internalBpublic, internalBprivate = keygen()
+    clientsA = json.dumps([c.data for c in rga.clients])
+    clientsB = json.dumps([c.data for c in rgb.clients])
     script_paramsA = {
                 "my_internal_wg_ip": "192.168.0.2",
                 "their_internal_wg_ip":"192.168.0.3",
@@ -35,24 +40,25 @@ def expand_link(controller, link):
                 "our_external_port":"3002",
                 "my_internal_private_key": internalAprivate,
                 "their_internal_public_key": internalBpublic,
-                "our_external_private_key": link.external_private_keyA,
-                "their_vpc_address": ipB
+                "our_external_private_key": rga.client_facing_private_key, 
+                "their_vpc_address": ipB,
+                "our_clients": clientsA,
+                "their_clients": clientsB
             }
     script_paramsB = {
                 "my_internal_wg_ip":"192.168.0.3",
                 "their_internal_wg_ip": "192.168.0.2",
                 "their_external_wg_ip":"192.168.0.5",
                 "my_external_wg_ip":"192.168.0.4",
-                "our_cidr": link.clientB.cidr,
-                "their_cidr": link.clientA.cidr,
                 "my_internal_port":"3005",
                 "their_internal_port":"3005",
                 "our_external_port":"3002",
                 "my_internal_private_key": internalBprivate,
                 "their_internal_public_key": internalApublic,
-                "our_external_private_key": link.external_private_keyB,
-                "our_clients_public_key": link.clientB.public_key,
-                "their_vpc_address": ipA
+                "our_external_private_key": rgb.client_facing_private_key,
+                "their_vpc_address": ipA,
+                "our_clients": clientsB,
+                "their_clients": clientsA
             }
     instanceA_name = prefix + "a"
     instanceB_name = prefix + "b"
@@ -87,7 +93,6 @@ if __name__ == '__main__':
     except StopIteration as e:
         link = next(x for x in links if x.equals(args.dst, args.src))
 
-    pprint(link.__dict__)
-    #expand_link(gcp, link)
+    expand_link(gcp, link)
 
 
