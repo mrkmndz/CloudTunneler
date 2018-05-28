@@ -29,24 +29,19 @@ def create_link(project, regionA, regionB, pools, clients):
                 "tmp")
     return link
 
+def init_pool(gcp, src_region, dst_region):
+    # create pool
+    pool_name = gcp.create_pool(src_region, dst_region)
+    # create forwarding rule
+    gcp.forward_to_pool(pool_name, src_region)
+
+    return pool_name
+
 def init_pools(gcp, src_region, dst_region):
-    # create pool
-    pool_nameA = gcp.create_pool(src_region, dst_region)
-    # create forwarding rule
-    gcp.forward_to_pool(pool_nameA, src_region)
-    # create pool
-    pool_nameB = gcp.create_pool(dst_region, src_region)
-    # create forwarding rule
-    gcp.forward_to_pool(pool_nameB, dst_region)
+    pool_nameA = init_pool(gcp, src_region, dst_region)
+    pool_nameB = init_pool(gcp, dst_region, src_region)
 
     return pool_nameA, pool_nameB
-
-def get_or_init_pools(gcp, src_region, dst_region, pools):
-    if src_region in pools:
-        assert dst_region in pools
-        return pools[src_region], pools[dst_region]
-    else:
-        return init_pools(gcp, src_region, dst_region)
 
 def main(config_file):
     gcp = GCPController("proj-204902")
@@ -62,16 +57,17 @@ def main(config_file):
         # TODO only doing 1 client per region
         clients[region["name"]] = create_client()
 
-    for regionA in config["regions"]:
-        for regionB in config["regions"]:
-            if regionA["name"] != regionB["name"]:
-                pools[regionA["name"]], pools[regionB["name"]] = get_or_init_pools(gcp,
-                                                                                   regionA["name"],
-                                                                                   regionB["name"],
-                                                                                   pools)
-                link = create_link(gcp.project, regionA, regionB, pools, clients)
-                pprint(link)
-                # expand_link(link)
+    num_regions = len(config["regions"])
+    for i in range(num_regions):
+        regionA = config["regions"][i]
+        for j in range(i+1, num_regions):
+            regionB = config["regions"][j]
+            pools[regionA["name"]], pools[regionB["name"]] = init_pools(gcp,
+                                                                        regionA["name"],
+                                                                        regionB["name"])
+            link = create_link(gcp.project, regionA, regionB, pools, clients)
+            pprint(link.__dict__)
+            # expand_link(link)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
