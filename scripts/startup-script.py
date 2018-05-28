@@ -47,7 +47,7 @@ def create_external_wireguard_config(settings):
     for client in settings["our_clients"]:
         config += ("[Peer]\n"
                    "PublicKey = {public_key}\n"
-                   "AllowedIPs = {ip}\n").format(**client)
+                   "AllowedIPs = {private_ip}\n").format(**client)
 
 def main():
     # send output to file
