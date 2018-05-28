@@ -26,8 +26,8 @@ class GCPController(object):
         resp = self.compute.instances().list(project=self.project, zone=zone).execute()
         if "items" in resp:
             for item in resp["items"]:
-                print "deleting", compute_resource_name, item["name"]
-                args = {compute_resource_name: item["name"], "project": self.project, "zone": zone}
+                print "deleting instance", item["name"]
+                args = {"instance": item["name"], "project": self.project, "zone": zone}
                 operation = self.compute.instances().delete(**args).execute()
                 self.wait_for_zone_operation(zone, operation["name"])
 
@@ -69,7 +69,7 @@ class GCPController(object):
         resp = self.compute.addresses().get(project=self.project, region=region, address=body["name"]).execute()
         return resp["address"]
 
-    def create_instance(self, zone, name, ip, imageID, vcpus, script, script_params):
+    def create_instance(self, zone, name, internal_ip, external_ip, imageID, vcpus, script, script_params):
         # https://www.googleapis.com/compute/v1/projects/{project}/global/images/{resourceId}
         image_response = self.compute.images().get(project=self.project, image=imageID).execute()
         source_disk_image = image_response['selfLink']
@@ -102,9 +102,11 @@ class GCPController(object):
             # internet.
             'networkInterfaces': [{
                 'network': 'global/networks/default',
-                "networkIP": ip,
+                "networkIP": internal_ip,
                 'accessConfigs': [
-                    {'type': 'ONE_TO_ONE_NAT', 'name': 'External NAT'}
+                    {'type': 'ONE_TO_ONE_NAT',
+                        'name': 'External NAT',
+                        'natIP': external_ip}
                 ]
             }],
 

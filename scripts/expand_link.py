@@ -28,8 +28,8 @@ def expand_link(controller, link):
 
     internalApublic, internalAprivate = keygen()
     internalBpublic, internalBprivate = keygen()
-    clientsA = json.dumps([c.data for c in rga.clients])
-    clientsB = json.dumps([c.data for c in rgb.clients])
+    clientsA = json.dumps([c.data() for c in rga.clients])
+    clientsB = json.dumps([c.data() for c in rgb.clients])
     script_paramsA = {
                 "my_internal_wg_ip": "192.168.0.2",
                 "their_internal_wg_ip":"192.168.0.3",
@@ -62,15 +62,15 @@ def expand_link(controller, link):
             }
     instanceA_name = prefix + "a"
     instanceB_name = prefix + "b"
-    operationA = controller.create_instance(link.zoneA, instanceA_name, ipA, imageID, vcpus, script, script_paramsA)
-    operationB = controller.create_instance(link.zoneB, instanceB_name, ipB, imageID, vcpus, script, script_paramsB)
-    controller.wait_for_zone_operation(link.zoneA, operationA['name'])
-    controller.wait_for_zone_operation(link.zoneB, operationB['name'])
+    operationA = controller.create_instance(rga.zone, instanceA_name, ipA, rga.pool.ip, imageID, vcpus, script, script_paramsA)
+    operationB = controller.create_instance(rgb.zone, instanceB_name, ipB, rgb.pool.ip, imageID, vcpus, script, script_paramsB)
+    controller.wait_for_zone_operation(rga.zone, operationA['name'])
+    controller.wait_for_zone_operation(rgb.zone, operationB['name'])
     # add instances to pools
-    instanceA_self_link = "zones/{zone}/instances/{name}".format(zone=link.zoneA, name=instanceA_name)
-    instanceB_self_link = "zones/{zone}/instances/{name}".format(zone=link.zoneB, name=instanceB_name)
-    controller.add_instance_to_pool(instanceA_self_link, link.poolA, link.regionA)
-    controller.add_instance_to_pool(instanceB_self_link, link.poolB, link.regionB)
+    instanceA_self_link = "zones/{zone}/instances/{name}".format(zone=rga.zone, name=instanceA_name)
+    instanceB_self_link = "zones/{zone}/instances/{name}".format(zone=rgb.zone, name=instanceB_name)
+    controller.add_instance_to_pool(instanceA_self_link, rga.pool.name, rga.region)
+    controller.add_instance_to_pool(instanceB_self_link, rgb.pool.name, rgb.region)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
