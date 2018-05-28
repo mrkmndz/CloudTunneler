@@ -2,6 +2,7 @@ import argparse
 import json
 from gcp_controller import GCPController
 from subprocess import call
+import os
 
 def main(config_file):
     with open(config_file, "r") as f:
