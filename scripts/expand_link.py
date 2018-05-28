@@ -26,16 +26,15 @@ def expand_link(controller, link):
                 "their_internal_wg_ip":"192.168.0.3",
                 "their_external_wg_ip":"192.168.0.4",
                 "my_external_wg_ip":"192.168.0.5",
-                "our_cidr": link.clientA.cidr,
-                "their_cidr": link.clientB.cidr,
                 "my_internal_port":"3005",
                 "their_internal_port":"3005",
                 "our_external_port":"3002",
                 "my_internal_private_key": internalAprivate,
                 "their_internal_public_key": internalBpublic,
                 "our_external_private_key": link.external_private_keyA,
-                "our_clients_public_key": link.clientA.public_key,
                 "their_vpc_address": ipB
+                "our_clients": #TODO
+                "their_clients":#TODO
             }
     script_paramsB = {
                 "my_internal_wg_ip":"192.168.0.3",

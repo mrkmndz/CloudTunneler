@@ -9,33 +9,32 @@ from subprocess import call
 import json
 from gcp_controller import GCPController
 from pprint import pprint
-from link import Client, Link
+from link import *
 PROJECT = "cloudtunneler"
 
-def create_client():
-    return Client("test", "test")
-
 def create_link(project, regionA, regionB, pools, clients):
+    rg_a = RouterGroup(regionA["name"],
+                       regionA["zone"],
+                       pools[regionA["name"]],
+                       clients[regionA["name"]])
+    rg_b = RouterGroup(regionB["name"],
+                       regionB["zone"],
+                       pools[regionB["name"]],
+                       clients[regionB["name"]])
     link = Link(project,
-                regionA["name"],
-                regionB["name"],
-                pools[regionA["name"]],
-                pools[regionB["name"]],
-                regionA["zone"],
-                regionB["zone"],
-                clients[regionA["name"]],
-                clients[regionB["name"]],
-                "tmp",
-                "tmp")
+                rg_a,
+                rg_b)
     return link
 
 def init_pool(gcp, src_region, dst_region):
     # create pool
     pool_name = gcp.create_pool(src_region, dst_region)
+    # reserve ip
+    pool_ip = gcp.reserve_vpc_ip(src_region, pool_name, is_internal=False)
     # create forwarding rule
-    gcp.forward_to_pool(pool_name, src_region)
+    gcp.forward_to_pool(pool_name, pool_ip, src_region)
 
-    return pool_name
+    return Pool(pool_name, pool_ip)
 
 def init_pools(gcp, src_region, dst_region):
     pool_nameA = init_pool(gcp, src_region, dst_region)
@@ -54,8 +53,8 @@ def main(config_file):
 
     # create all clients
     for region in config["regions"]:
-        # TODO only doing 1 client per region
-        clients[region["name"]] = create_client()
+        for ip in region["clients"]:
+            clients.setdefault(region["name"], []).append(Client(ip))
 
     num_regions = len(config["regions"])
     for i in range(num_regions):

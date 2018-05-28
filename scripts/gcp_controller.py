@@ -37,17 +37,20 @@ class GCPController(object):
         self.wait_for_region_operation(src_region, operation["name"])
         return pool_name
 
-    def forward_to_pool(self, pool_name, region):
+    def forward_to_pool(self, pool_name, pool_ip, region):
         pool_self_link = "projects/{project}/regions/{region}/targetPools/{pool_name}".format(
                 project=self.project, region=region, pool_name=pool_name)
-        body = {"target": pool_self_link, "name": "forward-%s" % pool_name, "IPProtocol": "UDP"}
+        body = {"target": pool_self_link,
+                "name": "forward-%s" % pool_name,
+                "IPProtocol": "UDP",
+                "IPAddress": pool_ip}
         operation = self.compute.forwardingRules().insert(project=self.project, region=region, body=body).execute()
         self.wait_for_region_operation(region, operation["name"])
 
-    def reserve_vpc_ip(self, region, instance_name):
+    def reserve_vpc_ip(self, region, instance_name, is_internal=True):
         body = {
                     "name": "ip-" + instance_name,
-                    "addressType": "INTERNAL"
+                    "addressType": "INTERNAL" if is_internal else "EXTERNAL"
                 }
         operation = self.compute.addresses().insert(project=self.project, region=region, body=body).execute()
         # TODO cb/ promises
