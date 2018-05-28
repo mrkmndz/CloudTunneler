@@ -11,16 +11,10 @@ class Client(object):
             "public_key": self.public_key,
             "private_key": self.private_key}
 
-class Pool(object):
-    def __init__(self, name, ip):
-        self.name = name
-        self.ip = ip
-
 class RouterGroup(object):
-    def __init__(self, region, zone, pool, clients):
+    def __init__(self, region, zone, clients):
         self.region = region
         self.zone = zone
-        self.pool = pool
         self.clients = clients
         public_key, private_key = keygen()
         self.client_facing_public_key = public_key

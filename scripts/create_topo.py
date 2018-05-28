@@ -13,35 +13,17 @@ from link import *
 import pickle
 PROJECT = "cloudtunneler"
 
-def create_link(project, regionA, regionB, pools, clients):
+def create_link(project, regionA, regionB, clients):
     rg_a = RouterGroup(regionA["name"],
                        regionA["zone"],
-                       pools[regionA["name"]],
                        clients[regionA["name"]])
     rg_b = RouterGroup(regionB["name"],
                        regionB["zone"],
-                       pools[regionB["name"]],
                        clients[regionB["name"]])
     link = Link(project,
                 rg_a,
                 rg_b)
     return link
-
-def init_pool(gcp, src_region, dst_region):
-    # create pool
-    pool_name = gcp.create_pool(src_region, dst_region)
-    # reserve ip
-    pool_ip = gcp.reserve_vpc_ip(src_region, pool_name, is_internal=False)
-    # create forwarding rule
-    gcp.forward_to_pool(pool_name, pool_ip, src_region)
-
-    return Pool(pool_name, pool_ip)
-
-def init_pools(gcp, src_region, dst_region):
-    pool_nameA = init_pool(gcp, src_region, dst_region)
-    pool_nameB = init_pool(gcp, dst_region, src_region)
-
-    return pool_nameA, pool_nameB
 
 def main(config_file):
     with open(config_file, "r") as f:
@@ -55,7 +37,6 @@ def main(config_file):
 
     # TODO more efficient way to wait for operations
     clients = {} # dict of all client objects... region -> client
-    pools = {} # dict of created pools... region -> pool
 
     # create all clients
     for region in config["regions"]:
@@ -68,10 +49,7 @@ def main(config_file):
         regionA = config["regions"][i]
         for j in range(i+1, num_regions):
             regionB = config["regions"][j]
-            pools[regionA["name"]], pools[regionB["name"]] = init_pools(gcp,
-                                                                        regionA["name"],
-                                                                        regionB["name"])
-            links.append(create_link(gcp.project, regionA, regionB, pools, clients))
+            links.append(create_link(gcp.project, regionA, regionB, clients))
             # expand_link(link)
 
     # create client configs

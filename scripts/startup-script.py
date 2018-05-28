@@ -20,11 +20,13 @@ def start_wg_interface(is_internal, config, settings):
     call("sudo wg setconf %s %s" % (iface_name, config), shell=True)
     call("ip link set up dev %s" % iface_name, shell=True)
     if is_internal:
-        call("sudo ip route add {their_cidr} dev {iname}".format(iname=iface_name, **settings), shell=True)
+        for client in settings["their_clients"]:
+            call("sudo ip route add {ip} dev {iname}".format(iname=iface_name, **client), shell=True)
         call("sudo ip route add {their_internal_wg_ip} dev {iname}".format(iname=iface_name, **settings), shell=True)
         call("sudo ip route add {their_external_wg_ip} dev {iname}".format(iname=iface_name, **settings), shell=True)
     else:
-        call("sudo ip route add {our_cidr} dev {iname}".format(iname=iface_name, **settings), shell=True)
+        for client in settings["our_clients"]:
+            call("sudo ip route add {ip} dev {iname}".format(iname=iface_name, **client), shell=True)
 
 def create_internal_wireguard_config(settings):
     their_clients_ips_str = ", ".join([c["ip"] for c in settings["their_clients"]])
@@ -39,8 +41,8 @@ def create_internal_wireguard_config(settings):
 
 def create_external_wireguard_config(settings):
     config = ("[Interface]\n"
-            "PrivateKey = {our_external_private_key}\n"
-            "ListenPort = {our_external_port}\n").format(**settings)
+            "PrivateKey = {my_external_private_key}\n"
+            "ListenPort = {my_external_port}\n").format(**settings)
 
     for client in settings["our_clients"]:
         config += ("[Peer]\n"
@@ -59,10 +61,10 @@ def main():
                     "my_external_wg_ip",
                     "my_internal_port",
                     "their_internal_port",
-                    "our_external_port",
+                    "my_external_port",
                     "my_internal_private_key",
                     "their_internal_public_key",
-                    "our_external_private_key",
+                    "my_external_private_key",
                     "their_vpc_address",
                     "our_clients",
                     "their_clients"]
