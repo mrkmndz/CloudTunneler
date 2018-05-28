@@ -3,6 +3,7 @@ from link import Link, Client
 from gcp_controller import GCPController
 import time
 from pprint import pprint
+import pickle
 
 def expand_link(controller, link):
     prefix = "rt" + str(int(time.time()))
@@ -65,23 +66,25 @@ def expand_link(controller, link):
     controller.add_instance_to_pool(instanceB_self_link, link.poolB, link.regionB)
 
 if __name__ == '__main__':
-    # create link
-    link = Link("proj-204902",
-                "us-west1",
-                "europe-west2", 
-                "from-oregon-to-london",
-                "from-london-to-oregon",
-                "us-west1-b",
-                "europe-west2-a",
-                Client("192.168.1.0/24", "PEyAxX9TkfUZL6WtT5Wom/vUBLU58Q+Bm96HOoS8GC8="),
-                Client("192.168.2.0/24", "V7Xk17ue208HvTP+HATwbTqCTwl5am10z1TQeIRKmB8="),
-                "uAQZLoJJFJfEP7HmHdwhOmIrNaQ5HFtN4bxwOaFw4Gk=",
-                # pubkey sSZRAEzYMKv8KVdnXdiKWqRWvK4GvgTog8XgS+yWDBI=
-                "eOnUcSdci+B2lTEN+XhATLlU+Jm9TTurePnmXJtKy1k="
-                # pubkey vkTIgND+JmGeywcVLowaj4Q2f7CSgr0qhHu6rNbzAw8=
-            )
+    with open(config_file, "r") as f:
+        config = json.load(f)
+    build_dir = os.path.join(os.path.dirname(__file__), config["name"] + "-build")
+    gcp = GCPController(config["project"])
+    with open(os.path.join(build_dir, config["name"] + ".pickle"), "w+") as f:
+        links = pickle.load(f)
 
-    gcp = GCPController("proj-204902")
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('config', help='Your tWANg config')
+    parser.add_argument('src', help='region')
+    parser.add_argument('dst', help='region')
+    args = parser.parse_args()
+    try:
+        link = next(x for x in links if x.equals(args.src, args.dst))
+    except StopIteration as e:
+        link = next(x for x in links if x.equals(args.dst, args.src))
+
     expand_link(gcp, link)
 
 
