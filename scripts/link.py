@@ -26,7 +26,7 @@ class Link(object):
         self.project = project
         self.router_group_a = router_group_a
         self.router_group_b = router_group_b
-    def is(self, regiona, regionb):
+    def equals(self, regiona, regionb):
         return regiona == self.router_group_a.region and regionb == self.router_group_b.region
 
 

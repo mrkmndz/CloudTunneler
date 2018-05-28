@@ -88,18 +88,19 @@ def main(config_file):
                 other_region = other_region_obj["name"]
                 if other_region != region:
                     try:
-                        link = next(x for x in links if x.is(region, other_region))
-                        my_rgs.append(link.router_group_a)
+                        link = next(x for x in links if x.equals(region, other_region))
+                        my_rgs.append((link.router_group_a, other_region_obj["cidr"]))
                     except StopIteration as e:
-                        link = next(x for x in links if x.is(other_region, region))
-                        my_rgs.append(link.router_group_b)
+                        link = next(x for x in links if x.equals(other_region, region))
+                        my_rgs.append((link.router_group_b, other_region_obj["cidr"]))
             obj["links"] = [{"public_key": x.client_facing_public_key,
-                                "ip_addr": x.pool.ip
-                                "port": 3002
-                                "allowed_ips": [other_region["cidr"]]}
-                                for x in my_rgs]
+                                "ip_addr": x.pool.ip,
+                                "port": 3002,
+                                "allowed_ips": [cidr]}
+                                for x, cidr in my_rgs]
 
-            with open(os.path.join(build_dir), region + "-client-%d" % client_idx, "w+") as f:
+            file_name = "%s-client%d.json" % (region, client_idx)
+            with open(os.path.join(build_dir, file_name), "w+") as f:
                 json.dump(obj, f)
             client_idx += 1
 
