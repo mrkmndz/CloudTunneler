@@ -5,15 +5,17 @@
     {
       "name": "us-west1",
       "zone": "us-west1-b",
+      "cidr": "192.168.1.0/24",
       "clients": [
-        "..."
+        "192.168.1.37"
        ]
     },
     {
       "name": "europe-west2",
       "zone": "europe-west2-b",
+      "cidr": "192.168.2.0/24",
       "clients": [
-        "..."
+        "192.168.2.42"
        ]
     }
   ]

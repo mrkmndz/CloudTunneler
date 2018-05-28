@@ -76,6 +76,34 @@ def main(config_file):
 
     # create client configs
     call("mkdir " + build_dir, shell=True)
+    for region, clis in clients.iteritems():
+        client_idx = 0
+        for client in clis:
+            obj = {"my_ip": client.ip,
+                    "wan_cidr": "192.168.0.0/16",
+                    "my_private_key": client.private_key,
+                    "my_port": 5001}
+            my_rgs = []
+            for other_region_obj in config["regions"]:
+                other_region = other_region_obj["name"]
+                if other_region != region:
+                    try:
+                        link = next(x for x in links if x.is(region, other_region))
+                        my_rgs.append(link.router_group_a)
+                    except StopIteration as e:
+                        link = next(x for x in links if x.is(other_region, region))
+                        my_rgs.append(link.router_group_b)
+            obj["links"] = [{"public_key": x.client_facing_public_key,
+                                "ip_addr": x.pool.ip
+                                "port": 3002
+                                "allowed_ips": [other_region["cidr"]]}
+                                for x in my_rgs]
+
+            with open(os.path.join(build_dir), region + "-client-%d" % client_idx, "w+") as f:
+                json.dump(obj, f)
+            client_idx += 1
+
+
     
     # save for later
     with open(os.path.join(build_dir, config["name"] + ".pickle"), "w+") as f:
