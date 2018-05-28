@@ -4,6 +4,9 @@ from gcp_controller import GCPController
 import time
 from pprint import pprint
 import pickle
+import argparse
+import json
+import os
 
 def expand_link(controller, link):
     prefix = "rt" + str(int(time.time()))
@@ -34,8 +37,6 @@ def expand_link(controller, link):
                 "their_internal_public_key": internalBpublic,
                 "our_external_private_key": link.external_private_keyA,
                 "their_vpc_address": ipB
-                "our_clients": #TODO
-                "their_clients":#TODO
             }
     script_paramsB = {
                 "my_internal_wg_ip":"192.168.0.3",
@@ -66,13 +67,6 @@ def expand_link(controller, link):
     controller.add_instance_to_pool(instanceB_self_link, link.poolB, link.regionB)
 
 if __name__ == '__main__':
-    with open(config_file, "r") as f:
-        config = json.load(f)
-    build_dir = os.path.join(os.path.dirname(__file__), config["name"] + "-build")
-    gcp = GCPController(config["project"])
-    with open(os.path.join(build_dir, config["name"] + ".pickle"), "w+") as f:
-        links = pickle.load(f)
-
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -80,11 +74,20 @@ if __name__ == '__main__':
     parser.add_argument('src', help='region')
     parser.add_argument('dst', help='region')
     args = parser.parse_args()
+
+    with open(args.config, "r") as f:
+        config = json.load(f)
+    build_dir = os.path.join(os.path.dirname(__file__), config["name"] + "-build")
+    gcp = GCPController(config["project"])
+    with open(os.path.join(build_dir, config["name"] + ".pickle"), "r") as f:
+        links = pickle.load(f)
+
     try:
         link = next(x for x in links if x.equals(args.src, args.dst))
     except StopIteration as e:
         link = next(x for x in links if x.equals(args.dst, args.src))
 
-    expand_link(gcp, link)
+    pprint(link.__dict__)
+    #expand_link(gcp, link)
 
 
