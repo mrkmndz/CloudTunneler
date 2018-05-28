@@ -65,7 +65,10 @@ def main(config_file):
     for regionA in config["regions"]:
         for regionB in config["regions"]:
             if regionA["name"] != regionB["name"]:
-                pools[regionA["name"]], pools[regionB["name"]] = get_or_init_pools(gcp, regionA["name"], regionB["name"])
+                pools[regionA["name"]], pools[regionB["name"]] = get_or_init_pools(gcp,
+                                                                                   regionA["name"],
+                                                                                   regionB["name"],
+                                                                                   pools)
                 link = create_link(regionA, regionB, pools, clients)
                 pprint(link)
                 # expand_link(link)
