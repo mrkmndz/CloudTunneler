@@ -1,6 +1,7 @@
 import argparse
 import json
 from gcp_controller import GCPController
+from subprocess import call
 
 def main(config_file):
     with open(config_file, "r") as f:
@@ -15,6 +16,8 @@ def main(config_file):
         gcp.delete_all(gcp.compute.targetPools(), "targetPool", region["name"])
         # delete instances
         gcp.delete_all_instances(region["zone"])
+    build_dir = os.path.join(os.path.dirname(__file__), config["name"] + "-build")
+    call("rm -rf " + build_dir, shell=True)   
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

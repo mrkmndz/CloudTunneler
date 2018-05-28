@@ -46,6 +46,11 @@ def init_pools(gcp, src_region, dst_region):
 def main(config_file):
     with open(config_file, "r") as f:
         config = json.load(f)
+    build_dir = os.path.join(os.path.dirname(__file__), config["name"] + "-build")
+    if os.path.isdir(build_dir):
+        print "topology already exists"
+        return
+
     gcp = GCPController(config["project"])
 
     # TODO more efficient way to wait for operations
@@ -68,9 +73,12 @@ def main(config_file):
                                                                         regionB["name"])
             links.append(create_link(gcp.project, regionA, regionB, pools, clients))
             # expand_link(link)
+
+    # create client configs
+    call("mkdir " + build_dir, shell=True)
     
     # save for later
-    with open("links.pickle", "w+") as f:
+    with open(os.path.join(build_dir, config["name"] + ".pickle"), "w+") as f:
         pickle.dump(links, f)
 
 if __name__ == '__main__':
