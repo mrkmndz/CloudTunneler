@@ -10,6 +10,7 @@ import json
 from gcp_controller import GCPController
 from pprint import pprint
 from link import *
+import pickle
 PROJECT = "cloudtunneler"
 
 def create_link(project, regionA, regionB, pools, clients):
@@ -57,6 +58,7 @@ def main(config_file):
             clients.setdefault(region["name"], []).append(Client(ip))
 
     num_regions = len(config["regions"])
+    links = []
     for i in range(num_regions):
         regionA = config["regions"][i]
         for j in range(i+1, num_regions):
@@ -64,9 +66,12 @@ def main(config_file):
             pools[regionA["name"]], pools[regionB["name"]] = init_pools(gcp,
                                                                         regionA["name"],
                                                                         regionB["name"])
-            link = create_link(gcp.project, regionA, regionB, pools, clients)
-            pprint(link.__dict__)
+            links.append(create_link(gcp.project, regionA, regionB, pools, clients))
             # expand_link(link)
+    
+    # save for later
+    with open("links.pickle", "w+") as f:
+        pickle.dump(links, f)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
