@@ -1,9 +1,5 @@
-#! /usr/bin/python
 from subprocess import call as real_call
 import json
-import requests
-import sys
-import pickle
 
 def call(*args, **kwargs):
     print args
@@ -135,28 +131,3 @@ class Endpoint(object):
         start_wg_interface(own_virtaual_ip, if_name)
         return if_name
 
-def main():
-    # send output to file
-    sys.stdout = open("startup-script.out", "w+")
-    sys.stderr = open("startup-script.out", "w+")
-
-    serialized = requests.get("http://metadata/computeMetadata/v1/instance/attributes/me",
-                                            headers={"Metadata-Flavor": "Google"}).text
-    me = pickle.loads(serialized)
-
-    # allow ip forwarding
-    call("sudo sysctl -w net.ipv4.ip_forward=1", shell=True)
-
-    for endpoint, client in me.client_facing_endpoints:
-        if_name = endpoint.realize(me.private_ip_a)
-        call("sudo ip route add %s dev %s" % (client.private_ip, if_name), shell=True) 
-    
-    transit_if_name = transit_facing_enpoint.realize(me.private_ip_b)
-    for endpoint, client in me.pair.client_facing_endpoints:
-        call("sudo ip route add %s dev %s" % (client.private_ip, transit_if_name), shell=True) 
-
-    sys.stdout.close()
-    sys.stderr.close()
-
-if __name__ == '__main__':
-    main()
