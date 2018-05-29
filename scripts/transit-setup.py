@@ -20,7 +20,7 @@ def main():
         if_name = endpoint.realize(me.private_ip_a)
         call("sudo ip route add %s dev %s" % (client.private_ip, if_name), shell=True) 
     
-    transit_if_name = transit_facing_endpoint.realize(me.private_ip_b)
+    transit_if_name = me.transit_facing_endpoint.realize(me.private_ip_b)
     for endpoint, client in me.pair.client_facing_endpoints:
         call("sudo ip route add %s dev %s" % (client.private_ip, transit_if_name), shell=True) 
 
