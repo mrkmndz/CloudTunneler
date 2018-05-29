@@ -27,18 +27,19 @@ class Client(object):
         self.private_ip = client_config["private_ip"]
         self.public_ip = client_config["public_ip"]
         self.free_port = 5001
-        # map from node name to list of transits
+        # map from node name to list of tuples of (endpoint, transit)
         self.transits = {}
 
     def gain_transits_to_node(self, other_node, transits):
+        tuples = []
         for transit in transits:
-            ep = self.add_endpoint()
-            ep.tunnel_to(transit.add_client_endpoint())
-        self.transits[other_node.name] = transits
+            ep = self.provision_endpoint()
+            ep.tunnel_to(transit.add_client(self))
+            tuples.append((ep, transit))
+        self.transits[other_node.name] = tuples
 
-    def add_endpoint(self):
+    def provision_endpoint(self):
         ep = Endpoint(self.public_ip, self.free_port)
-        self.endpoints.append(ep)
         self.free_port += 1
         return ep
 
@@ -50,11 +51,17 @@ class Transit(object):
         self.private_ip_b = private_ip_b
         self.free_port = 5001
         self.transit_facing_endpoint = Endpoint(self.vpc_ip, 3001)
+        # list of tuples of (endpoint, client)
         self.client_facing_endpoints = []
 
-    def add_client_endpoint(self, client_endpoint):
+    # returns endpoint that the client should tunnel to
+    def add_client(self, client):
+        ep = self.provision_client_endpoint()
+        self.client_facing_endpoints.append((ep, client))
+        return ep
+
+    def provision_client_endpoint(self):
         ep = Endpoint(self.client_facing_ip, self.free_port)
-        self.client_facing_endpoints.append(ep)
         self.free_port += 1
         return ep
     
