@@ -93,17 +93,21 @@ def main(config_file):
             with open(os.path.join(build_dir, file_name), "w+") as f:
                 pickle.dump({"nodes": nodes, "me": client}, f)
     for node in nodes:
+        print "setting up node %s" % node.name
+        operations = []
         for i, transit in enumerate(node.transits):
             instance_name = "%s-i-transit" % (node.name, i)
             serialized = pickle.dumps(transit)
-            gcp.create_instance(node.zone,
-                                instance_name,
-                                transit.vpc_ip,
-                                transit.client_facing_ip,
-                                "just-wireguard",
-                                4,
-                                "startup-script.py",
-                                {"me": serialized})
+            operations.append(gcp.create_instance(node.zone,
+                                                    instance_name,
+                                                    transit.vpc_ip,
+                                                    transit.client_facing_ip,
+                                                    "just-wireguard",
+                                                    4,
+                                                    "startup-script.py",
+                                                    {"me": serialized}))
+        for operation in operations
+            gcp.wait_for_zone_operation(node.zone, operation["name"])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
