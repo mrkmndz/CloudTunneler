@@ -86,3 +86,13 @@ class Endpoint(object):
         self.partner = endpoint
         if (should_recurse):
             endpoint.tunnel_to(self, should_recurse=False)
+    def create_wireguard_config(self):
+        conf_str = "[Interface]\n"
+        conf_str += "PrivateKey = %s\n" % self.private_key
+        conf_str += "ListenPort = %s\n" % self.port
+        conf_str += "[Peer]\n"
+        conf_str += "PublicKey = %s\n" % self.partner.public_key
+        conf_str += "Endpoint = %s:%d\n" % (self.partner.ip, self.partner.port)
+        conf_str += "AllowedIPs = 0.0.0.0/0\n"
+        return conf_str
+
