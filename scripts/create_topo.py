@@ -64,14 +64,14 @@ def main(config_file):
         from_node = next(n for n in nodes if n.name == edge["from"])
         to_node = next(n for n in nodes if n.name == edge["to"])
         width = edge["width"]
-        from_transits = [Transit(allocate_public_ip(),
-                                    allocate_vpc_ip(),
+        from_transits = [Transit(reserve_vpc_ip(from_node.region, is_internal=False),
+                                    reserve_vpc_ip(from_node.region),
                                     allocate_virtual_ip(),
                                     allocate_virtual_ip()) for x in range(width)]
         from_node.transits += from_transits
 
-        to_transits = [Transit(allocate_public_ip(),
-                                    allocate_vpc_ip(),
+        to_transits = [Transit(reserve_vpc_ip(to_node.region, is_internal=False),
+                                    reserve_vpc_ip(to_node.region),
                                     allocate_virtual_ip(),
                                     allocate_virtual_ip()) for x in range(width)]
         to_node.transits += to_transits
@@ -92,6 +92,18 @@ def main(config_file):
             file_name = "%s-client-%d.pickle" % (node.name, i)
             with open(os.path.join(build_dir, file_name), "w+") as f:
                 pickle.dump({"nodes": nodes, "me": client}, f)
+    for node in nodes:
+        for i, transit in enumerate(node.transits):
+            instance_name = "%s-i-transit" % (node.name, i)
+            serialized = pickle.dumps(transit)
+            gcp.create_instance(node.zone,
+                                instance_name,
+                                transit.vpc_ip,
+                                transit.client_facing_ip,
+                                "just-wireguard",
+                                4,
+                                "startup-script.py",
+                                {"me": serialized})
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

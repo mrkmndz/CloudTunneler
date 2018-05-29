@@ -58,7 +58,12 @@ class GCPController(object):
         operation = self.compute.forwardingRules().insert(project=self.project, region=region, body=body).execute()
         self.wait_for_region_operation(region, operation["name"])
 
-    def reserve_vpc_ip(self, region, instance_name, is_internal=True):
+    ip_idx = 0
+    def reserve_vpc_ip(self, region, instance_name=None, is_internal=True):
+        global ip_idx
+        if instance_name is None:
+            instance_name = "%d-rt" % ip_idx
+            ip_idx += 1
         body = {
                     "name": "ip-" + instance_name,
                     "addressType": "INTERNAL" if is_internal else "EXTERNAL"
