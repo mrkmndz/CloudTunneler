@@ -3,20 +3,22 @@ import json
 from gcp_controller import GCPController
 from subprocess import call
 import os
+from link import *
 
 def main(config_file):
     with open(config_file, "r") as f:
         config = json.load(f)
     gcp = GCPController(config["project"])
-    for region in config["regions"]:
+    nodes = [Node(x) for x in config["nodes"]]
+    for node in nodes:
         # delete forwarding rules
-        gcp.delete_all(gcp.compute.forwardingRules(), "forwardingRule", region["name"])
+        gcp.delete_all(gcp.compute.forwardingRules(), "forwardingRule", node.region)
         # delete ip address
-        gcp.delete_all(gcp.compute.addresses(), "address", region["name"])
+        gcp.delete_all(gcp.compute.addresses(), "address", node.region)
         # delete pools
-        gcp.delete_all(gcp.compute.targetPools(), "targetPool", region["name"])
+        gcp.delete_all(gcp.compute.targetPools(), "targetPool", node.region)
         # delete instances
-        gcp.delete_all_instances(region["zone"])
+        gcp.delete_all_instances(node.zone)
     build_dir = os.path.join(os.path.dirname(__file__), config["name"] + "-build")
     call("rm -rf " + build_dir, shell=True)   
 
