@@ -83,8 +83,11 @@ class Transit(object):
     def pair_with(self, pair_transit):
         if self.pair is not None:
             raise Exception("transit already has a pair")
-        pair_transit.transit_facing_endpoint.tunnel_to(self.transit_facing_endpoint)
+        if pair_transit.pair is not None:
+            raise Exception("pair transit already has a pair")
         self.pair = pair_transit
+        pair_transit.pair = self
+        pair_transit.transit_facing_endpoint.tunnel_to(self.transit_facing_endpoint)
 
 def start_wg_interface(my_ip, if_name):
     call("sudo ip link add dev %s type wireguard" % if_name, shell=True)
