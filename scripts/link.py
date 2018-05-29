@@ -86,9 +86,6 @@ class Transit(object):
         pair_transit.transit_facing_endpoint.tunnel_to(self.transit_facing_endpoint)
         self.pair = pair_transit
 
-    def serialize(self):
-        return pickle.dumps(self)
-
 def start_wg_interface(my_ip, if_name):
     call("sudo ip link add dev %s type wireguard" % if_name, shell=True)
     call("sudo ip address add dev %s %s/32" % (if_name, my_ip), shell=True)
@@ -127,7 +124,7 @@ class Endpoint(object):
     def realize(self, own_virtual_ip):
         if_name = alloc_if_name()
         with open(if_name + ".conf", "w+") as f:
-            f.write(endpoint.create_wireguard_config())
+            f.write(self.create_wireguard_config())
         start_wg_interface(own_virtaual_ip, if_name)
         return if_name
 
