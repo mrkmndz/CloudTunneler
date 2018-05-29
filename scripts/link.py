@@ -125,6 +125,6 @@ class Endpoint(object):
         if_name = alloc_if_name()
         with open(if_name + ".conf", "w+") as f:
             f.write(self.create_wireguard_config())
-        start_wg_interface(own_virtaual_ip, if_name)
+        start_wg_interface(own_virtual_ip, if_name)
         return if_name
 
