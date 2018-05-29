@@ -76,51 +76,13 @@ def main(config_file):
         for client in to_node.clients:
             client.gain_transits_to_node(from_node, to_transits)
 
-    for node in nodes:
-        for client in node.clients:
-            print "pickling client"
-            print pickle.dumps(client)
-        for transit in node.transits:
-            print "pickling transit"
-            print pickle.dumps(transit)
-    return
-
-
     # create client configs
     call("mkdir " + build_dir, shell=True)
-    for region, clis in clients.iteritems():
-        client_idx = 0
-        for client in clis:
-            obj = {"my_ip": client.ip,
-                    "wan_cidr": "192.168.0.0/16",
-                    "my_private_key": client.private_key,
-                    "my_port": 5001}
-            my_rgs = []
-            for other_region_obj in config["regions"]:
-                other_region = other_region_obj["name"]
-                if other_region != region:
-                    try:
-                        link = next(x for x in links if x.equals(region, other_region))
-                        my_rgs.append((link.router_group_a, other_region_obj["cidr"]))
-                    except StopIteration as e:
-                        link = next(x for x in links if x.equals(other_region, region))
-                        my_rgs.append((link.router_group_b, other_region_obj["cidr"]))
-            obj["links"] = [{"public_key": x.client_facing_public_key,
-                                "ip_addr": x.pool.ip,
-                                "port": 3002,
-                                "allowed_ips": [cidr]}
-                                for x, cidr in my_rgs]
-
-            file_name = "%s-client%d.json" % (region, client_idx)
+    for node in nodes:
+        for i, client in enumerate(node.clients):
+            file_name = "%s-client-%d.pickle" % (node.name, i)
             with open(os.path.join(build_dir, file_name), "w+") as f:
-                json.dump(obj, f)
-            client_idx += 1
-
-
-    
-    # save for later
-    with open(os.path.join(build_dir, config["name"] + ".pickle"), "w+") as f:
-        pickle.dump(links, f)
+                pickle.dump(client, f)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
