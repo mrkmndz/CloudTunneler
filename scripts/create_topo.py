@@ -27,16 +27,19 @@ def create_link(project, regionA, regionB, clients):
 
 pip_i = 0
 def allocate_public_ip():
+    global pip_i
     pip_i += 1
     return "10.%d.10.10" % pip_i
 
 vpc_i = 0
 def allocate_vpc_ip():
+    global vpc_i
     vpc_i += 1
     return "10.%d.10.11" % vpc_i
 
 v_i = 0
 def allocate_virtual_ip():
+    global v_i
     v_i += 1
     return "10.%d.10.12" % v_i
 
