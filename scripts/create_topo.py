@@ -84,14 +84,14 @@ def main(config_file):
         operations = []
         for i, transit in enumerate(node.transits):
             instance_name = "%s-%d-transit" % (node.name, i)
-            serialized = pickle.dumps(transit)
+            serialized = transit.serialize()
             operations.append(gcp.create_instance(node.zone,
                                                     instance_name,
                                                     transit.vpc_ip,
                                                     transit.client_facing_ip,
                                                     "just-wireguard",
                                                     4,
-                                                    "startup-script.py",
+                                                    "link.py",
                                                     {"me": serialized}))
         for operation in operations:
             gcp.wait_for_zone_operation(node.zone, operation["name"])

@@ -1,5 +1,4 @@
 #! /usr/bin/python
-from keygen import keygen
 from subprocess import call as real_call
 import json
 import requests
@@ -90,6 +89,9 @@ class Transit(object):
             raise Exception("transit already has a pair")
         pair_transit.transit_facing_endpoint.tunnel_to(self.transit_facing_endpoint)
         self.pair = pair_transit
+
+    def serialize(self):
+        return pickle.dumps(self)
 
 def start_wg_interface(my_ip, if_name):
     call("sudo ip link add dev %s type wireguard" % if_name, shell=True)
