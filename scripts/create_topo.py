@@ -25,6 +25,15 @@ def create_link(project, regionA, regionB, clients):
                 rg_b)
     return link
 
+def allocate_public_ip():
+    return "10.10.10.10"
+
+def allocate_vpc_ip():
+    return "10.10.10.11"
+
+def allocate_virtual_ip():
+    return "10.10.10.12"
+
 def main(config_file):
     with open(config_file, "r") as f:
         config = json.load(f)
@@ -50,18 +59,31 @@ def main(config_file):
                                     allocate_vpc_ip(),
                                     allocate_virtual_ip(),
                                     allocate_virtual_ip()) for x in range(width)]
+        from_node.transits += from_transits
+
         to_transits = [Transit(allocate_public_ip(),
                                     allocate_vpc_ip(),
                                     allocate_virtual_ip(),
                                     allocate_virtual_ip()) for x in range(width)]
+        to_node.transits += to_transits
+
         for x in range(width):
-            from_transits[x].pair(to_transits[x])
+            from_transits[x].pair_with(to_transits[x])
 
         for client in from_node.clients:
             client.gain_transits_to_node(to_node, from_transits)
 
         for client in to_node.clients:
             client.gain_transits_to_node(from_node, to_transits)
+
+    for node in nodes:
+        for client in node.clients:
+            print "pickling client"
+            print pickle.dumps(client)
+        for transit in node.transits:
+            print "pickling transit"
+            print pickle.dumps(transit)
+    return
 
 
     # create client configs

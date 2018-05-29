@@ -21,6 +21,7 @@ class Node(object):
         self.region = node_config["region"]
         self.zone = node_config["zone"]
         self.clients = [Client(x) for x in node_config["clients"]]
+        self.transits = []
 
 class Client(object):
     def __init__(self, client_config):
@@ -53,6 +54,7 @@ class Transit(object):
         self.transit_facing_endpoint = Endpoint(self.vpc_ip, 3001)
         # list of tuples of (endpoint, client)
         self.client_facing_endpoints = []
+        self.pair = None
 
     # returns endpoint that the client should tunnel to
     def add_client(self, client):
@@ -65,8 +67,8 @@ class Transit(object):
         self.free_port += 1
         return ep
     
-    def pair(self, pair_transit):
-        if self.pair:
+    def pair_with(self, pair_transit):
+        if self.pair is not None:
             raise Exception("transit already has a pair")
         pair_transit.transit_facing_endpoint.tunnel_to(self.transit_facing_endpoint)
         self.pair = pair_transit
@@ -77,8 +79,10 @@ class Endpoint(object):
         self.ip = ip
         self.port = port
         self.public_key, self.private_key = keygen()
-    def tunnel_to(endpoint):
-        if self.partner:
+        self.partner = None
+    def tunnel_to(self, endpoint, should_recurse=True):
+        if self.partner is not None:
             raise Exception("endpoint already has a partner")
         self.partner = endpoint
-        endpoint.tunnel_to(self)
+        if (should_recurse):
+            endpoint.tunnel_to(self, should_recurse=False)
