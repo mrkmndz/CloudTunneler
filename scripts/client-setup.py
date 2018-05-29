@@ -2,22 +2,12 @@
 
 import argparse
 import requests
-from subprocess import call as real_call
 import sys
 import json
 from pprint import pprint
 import os
 import pickle
-
-def call(*args, **kwargs):
-    print args
-    real_call(*args, **kwargs)
-
-def start_wg_interface(my_ip, if_name):
-    call("sudo ip link add dev %s type wireguard" % if_name, shell=True)
-    call("sudo ip address add dev %s %s/32" % (if_name, my_ip), shell=True)
-    call("sudo wg setconf %s %s" % (if_name, if_name + ".conf"), shell=True)
-    call("ip link set up dev %s" % if_name, shell=True)
+from link import *
 
 def main():
     parser = argparse.ArgumentParser(
@@ -29,15 +19,10 @@ def main():
         config = pickle.load(f)
     nodes = config["nodes"]
     me = config["me"]
-    if_idx = 0
     for node_name, tuples in me.transits.iteritems():
         interfaces = []
         for endpoint, transit in tuples:
-            if_name = "wg%d" % if_idx
-            if_idx += 1
-            with open(if_name + ".conf", "w+") as f:
-                f.write(endpoint.create_wireguard_config())
-            start_wg_interface(me.private_ip, if_name)
+            if_name = endpoint.realize(me.private_ip)
             interfaces.append(if_name)
             transit_ips = []
             transit_ips.append(transit.private_ip_a)

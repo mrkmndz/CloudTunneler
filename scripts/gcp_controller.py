@@ -8,6 +8,7 @@ from pprint import pprint
 import subprocess
 from util import *
 
+ip_idx = 0
 class GCPController(object):
     def __init__(self, project):
         self.compute = googleapiclient.discovery.build('compute', 'v1')
@@ -58,7 +59,6 @@ class GCPController(object):
         operation = self.compute.forwardingRules().insert(project=self.project, region=region, body=body).execute()
         self.wait_for_region_operation(region, operation["name"])
 
-    ip_idx = 0
     def reserve_vpc_ip(self, region, instance_name=None, is_internal=True):
         global ip_idx
         if instance_name is None:

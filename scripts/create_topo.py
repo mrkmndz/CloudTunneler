@@ -5,7 +5,6 @@ import time
 import googleapiclient.discovery
 from six.moves import input
 from pprint import pprint
-from subprocess import call
 import json
 from gcp_controller import GCPController
 from pprint import pprint
@@ -24,18 +23,6 @@ def create_link(project, regionA, regionB, clients):
                 rg_a,
                 rg_b)
     return link
-
-pip_i = 0
-def allocate_public_ip():
-    global pip_i
-    pip_i += 1
-    return "10.%d.10.10" % pip_i
-
-vpc_i = 0
-def allocate_vpc_ip():
-    global vpc_i
-    vpc_i += 1
-    return "10.%d.10.11" % vpc_i
 
 v_i = 0
 def allocate_virtual_ip():
@@ -64,14 +51,14 @@ def main(config_file):
         from_node = next(n for n in nodes if n.name == edge["from"])
         to_node = next(n for n in nodes if n.name == edge["to"])
         width = edge["width"]
-        from_transits = [Transit(reserve_vpc_ip(from_node.region, is_internal=False),
-                                    reserve_vpc_ip(from_node.region),
+        from_transits = [Transit(gcp.reserve_vpc_ip(from_node.region, is_internal=False),
+                                    gcp.reserve_vpc_ip(from_node.region),
                                     allocate_virtual_ip(),
                                     allocate_virtual_ip()) for x in range(width)]
         from_node.transits += from_transits
 
-        to_transits = [Transit(reserve_vpc_ip(to_node.region, is_internal=False),
-                                    reserve_vpc_ip(to_node.region),
+        to_transits = [Transit(gcp.reserve_vpc_ip(to_node.region, is_internal=False),
+                                    gcp.reserve_vpc_ip(to_node.region),
                                     allocate_virtual_ip(),
                                     allocate_virtual_ip()) for x in range(width)]
         to_node.transits += to_transits
@@ -96,7 +83,7 @@ def main(config_file):
         print "setting up node %s" % node.name
         operations = []
         for i, transit in enumerate(node.transits):
-            instance_name = "%s-i-transit" % (node.name, i)
+            instance_name = "%s-%d-transit" % (node.name, i)
             serialized = pickle.dumps(transit)
             operations.append(gcp.create_instance(node.zone,
                                                     instance_name,
@@ -106,7 +93,7 @@ def main(config_file):
                                                     4,
                                                     "startup-script.py",
                                                     {"me": serialized}))
-        for operation in operations
+        for operation in operations:
             gcp.wait_for_zone_operation(node.zone, operation["name"])
 
 if __name__ == '__main__':
