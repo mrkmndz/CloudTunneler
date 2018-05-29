@@ -24,6 +24,9 @@ def main():
     for endpoint, client in me.pair.client_facing_endpoints:
         call("sudo ip route add %s dev %s" % (client.private_ip, transit_if_name), shell=True) 
 
+    call("sudo ip route add %s dev %s" % (me.pair.private_ip_a, transit_if_name), shell=True) 
+    call("sudo ip route add %s dev %s" % (me.pair.private_ip_b, transit_if_name), shell=True) 
+
     sys.stdout.close()
     sys.stderr.close()
 
