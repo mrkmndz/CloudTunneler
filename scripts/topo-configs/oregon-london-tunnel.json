@@ -1,9 +1,10 @@
 {
     "name": "oregon-london-tunnel",
     "project": "proj-204902",
-    "regions": [
+    "nodes": [
     {
-        "name": "us-west1",
+        "name": "oregon",
+        "region": "us-west1",
         "zone": "us-west1-b",
         "clients": [
         {
@@ -13,7 +14,8 @@
         ]
     },
     {
-        "name": "europe-west2",
+        "name": "london",
+        "region": "europe-west2",
         "zone": "europe-west2-b",
         "clients": [
         {
@@ -22,5 +24,12 @@
         }
         ]
     }
-    ]
+    ],
+    "edges": [
+    {
+        "from": "oregon",
+        "to": "london",
+        "width": 2
+    }
+    ],
 }

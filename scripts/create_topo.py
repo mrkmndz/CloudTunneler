@@ -28,29 +28,41 @@ def create_link(project, regionA, regionB, clients):
 def main(config_file):
     with open(config_file, "r") as f:
         config = json.load(f)
-    build_dir = os.path.join(os.path.dirname(__file__), config["name"] + "-build")
+
+    topo_name = config["name"]
+
+    build_dir = os.path.join(os.path.dirname(__file__), topo_name + "-build")
     if os.path.isdir(build_dir):
         print "topology already exists"
         return
 
-    gcp = GCPController(config["project"])
+    gcp_project = config["project"] 
 
-    # TODO more efficient way to wait for operations
-    clients = {} # dict of all client objects... region -> client
+    nodes = [Node(x) for x in config["nodes"]]
 
-    # create all clients
-    for region in config["regions"]:
-        for ip in region["clients"]:
-            clients.setdefault(region["name"], []).append(Client(ip))
+    gcp = GCPController(gcp_project)
 
-    num_regions = len(config["regions"])
-    links = []
-    for i in range(num_regions):
-        regionA = config["regions"][i]
-        for j in range(i+1, num_regions):
-            regionB = config["regions"][j]
-            links.append(create_link(gcp.project, regionA, regionB, clients))
-            # expand_link(link)
+    for edge in config["edges"]:
+        from_node = next(n for n in nodes if n.name == edge["from"])
+        to_node = next(n for n in nodes if n.name == edge["to"])
+        width = edge["width"]
+        from_transits = [Transit(allocate_public_ip(),
+                                    allocate_vpc_ip(),
+                                    allocate_virtual_ip(),
+                                    allocate_virtual_ip()) for x in range(width)]
+        to_transits = [Transit(allocate_public_ip(),
+                                    allocate_vpc_ip(),
+                                    allocate_virtual_ip(),
+                                    allocate_virtual_ip()) for x in range(width)]
+        for x in range(width):
+            from_transits[x].pair(to_transits[x])
+
+        for client in from_node.clients:
+            client.gain_transits_to_node(to_node, from_transits)
+
+        for client in to_node.clients:
+            client.gain_transits_to_node(from_node, to_transits)
+
 
     # create client configs
     call("mkdir " + build_dir, shell=True)
