@@ -91,7 +91,7 @@ def main(config_file):
                                                     transit.client_facing_ip,
                                                     "just-wireguard",
                                                     4,
-                                                    "link.py",
+                                                    "startup-script.bash",
                                                     {"me": serialized}))
         for operation in operations:
             gcp.wait_for_zone_operation(node.zone, operation["name"])
