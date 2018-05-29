@@ -82,7 +82,7 @@ def main(config_file):
         for i, client in enumerate(node.clients):
             file_name = "%s-client-%d.pickle" % (node.name, i)
             with open(os.path.join(build_dir, file_name), "w+") as f:
-                pickle.dump(client, f)
+                pickle.dump({"nodes": nodes, "me": client}, f)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
