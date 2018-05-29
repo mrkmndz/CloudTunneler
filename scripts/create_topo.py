@@ -25,14 +25,20 @@ def create_link(project, regionA, regionB, clients):
                 rg_b)
     return link
 
+pip_i = 0
 def allocate_public_ip():
-    return "10.10.10.10"
+    pip_i += 1
+    return "10.%d.10.10" % pip_i
 
+vpc_i = 0
 def allocate_vpc_ip():
-    return "10.10.10.11"
+    vpc_i += 1
+    return "10.%d.10.11" % vpc_i
 
+v_i = 0
 def allocate_virtual_ip():
-    return "10.10.10.12"
+    v_i += 1
+    return "10.%d.10.12" % v_i
 
 def main(config_file):
     with open(config_file, "r") as f:

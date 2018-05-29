@@ -7,6 +7,7 @@ import sys
 import json
 from pprint import pprint
 import os
+import pickle
 
 def call(*args, **kwargs):
     print args
@@ -44,7 +45,7 @@ def main():
         interfaces = []
         for endpoint, transit in tuples:
             if_name = "wg%d" % if_idx
-            if_name += 1
+            if_idx += 1
             with open(if_name + ".conf", "w+") as f:
                 f.write(create_wireguard_config(endpoint))
             start_wg_interface(me.private_ip, if_name)
