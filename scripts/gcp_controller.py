@@ -34,6 +34,11 @@ class GCPController(object):
                 operations.append(self.compute.instances().delete(**args).execute())
         return operations
 
+    def add_route(self, name, tags, priority, destinationCIDR, nextHopIp):
+        body = {"name": name, "tags": tags, "priority": priority, "destRange": destinationCIDR, "nextHopIp": nextHopIp}
+        operation = self.routes().insert(project=self.project, body=body).execute()
+        self.wait_for_global_operation(operation["name"])
+
     def add_instance_to_pool(self, instance_self_link, pool_name, region):
         body = {"instances": [{"instance": instance_self_link}]}
         operation = self.compute.targetPools().addInstance(project=self.project,
@@ -93,6 +98,12 @@ class GCPController(object):
         config = {
             'name': name,
             'machineType': machine_type,
+
+            "tags": {
+                "items": [
+                    name
+                ]
+            },
 
             # Specify the boot disk and the image to use as a source.
             'disks': [
@@ -171,6 +182,21 @@ class GCPController(object):
             result = self.compute.regionOperations().get(
                 project=self.project,
                 region=region,
+                operation=operation).execute()
+
+            if result['status'] == 'DONE':
+                print("done.")
+                if 'error' in result:
+                    raise Exception(result['error'])
+                return result
+
+            time.sleep(1)
+
+    def wait_for_global_operation(self, operation):
+        print('Waiting for operation to finish...')
+        while True:
+            result = self.compute.globalOperations().get(
+                project=self.project,
                 operation=operation).execute()
 
             if result['status'] == 'DONE':

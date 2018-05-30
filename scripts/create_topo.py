@@ -65,9 +65,8 @@ def main(config_file):
                                     edge["internal_tunnel"]) for x in range(width)]
         to_node.transits += to_transits
 
-        if edge["internal_tunnel"]:
-            for x in range(width):
-                from_transits[x].pair_with(to_transits[x])
+        for x in range(width):
+            from_transits[x].pair_with(to_transits[x])
 
         for client in from_node.clients:
             client.gain_transits_to_node(to_node, from_transits)
@@ -87,6 +86,12 @@ def main(config_file):
         operations = []
         for i, transit in enumerate(node.transits):
             instance_name = "%s-%d-transit" % (node.name, i)
+            if not transit.internal_tunnel:
+                for endpoint, client in transit.pair.client_facing_endpoints:
+                    name = "%s-to-%s" % (instance_name, client.private_ip)
+                    cidr = "%s/32" % client.private_ip
+                    nhip = transit.pair.vpc_ip
+                    gcp.add_route(name, [instance_name], 2003, cidr, nhip)
             serialized = pickle.dumps(transit)
             operations.append(gcp.create_instance(node.zone,
                                                     instance_name,
