@@ -65,8 +65,9 @@ def main(config_file):
                                     edge["internal_tunnel"]) for x in range(width)]
         to_node.transits += to_transits
 
-        for x in range(width):
-            from_transits[x].pair_with(to_transits[x])
+        if edge["internal_tunnel"]:
+            for x in range(width):
+                from_transits[x].pair_with(to_transits[x])
 
         for client in from_node.clients:
             client.gain_transits_to_node(to_node, from_transits)
