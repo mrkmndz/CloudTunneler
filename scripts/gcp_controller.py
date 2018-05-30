@@ -24,6 +24,17 @@ class GCPController(object):
                 operations.append(compute_resource.delete(**args).execute())
         return operations
 
+    def delete_all_custom_routes(self):
+        resp = self.compute.routes().list(project=self.project).execute()
+        operations = []
+        if "items" in resp:
+            for item in resp["items"]:
+                name = item["name"]
+                if "default-route" not in name:
+                    print "deleting route", item["name"]
+                    operations.append(self.compute.routes().delete(project=self.project, route=name).execute())
+        return operations
+
     def delete_all_instances(self, zone):
         resp = self.compute.instances().list(project=self.project, zone=zone).execute()
         operations = []

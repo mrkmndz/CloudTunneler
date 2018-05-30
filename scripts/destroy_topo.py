@@ -11,6 +11,7 @@ def main(config_file):
     gcp = GCPController(config["project"])
     nodes = [Node(x) for x in config["nodes"]]
     # tuples of region or zone and operation
+    global_operations = gcp.delete_all_custom_routes()
     region_operations = []
     zone_operations = []
     for node in nodes:
@@ -20,6 +21,8 @@ def main(config_file):
         # delete instances
         zone_ops = gcp.delete_all_instances(node.zone)
         zone_operations.append((node.zone, zone_ops))
+    for operation in global_operations:
+        gcp.wait_for_global_operation(operation["name"])
     for region, ops in region_operations:
         for operation in ops:
             gcp.wait_for_region_operation(region, operation["name"])
