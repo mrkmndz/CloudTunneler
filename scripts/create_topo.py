@@ -54,13 +54,15 @@ def main(config_file):
         from_transits = [Transit(gcp.reserve_vpc_ip(from_node.region, is_internal=False),
                                     gcp.reserve_vpc_ip(from_node.region),
                                     allocate_virtual_ip(),
-                                    allocate_virtual_ip()) for x in range(width)]
+                                    allocate_virtual_ip(),
+                                    edge["internal_tunnel"]) for x in range(width)]
         from_node.transits += from_transits
 
         to_transits = [Transit(gcp.reserve_vpc_ip(to_node.region, is_internal=False),
                                     gcp.reserve_vpc_ip(to_node.region),
                                     allocate_virtual_ip(),
-                                    allocate_virtual_ip()) for x in range(width)]
+                                    allocate_virtual_ip(),
+                                    edge["internal_tunnel"]) for x in range(width)]
         to_node.transits += to_transits
 
         for x in range(width):

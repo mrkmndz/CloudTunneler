@@ -58,7 +58,7 @@ class Client(object):
         return ep
 
 class Transit(object):
-    def __init__(self, client_facing_ip, vpc_ip, private_ip_a, private_ip_b):
+    def __init__(self, client_facing_ip, vpc_ip, private_ip_a, private_ip_b, internal_tunnel):
         self.client_facing_ip = client_facing_ip
         self.vpc_ip = vpc_ip
         self.private_ip_a = private_ip_a
@@ -68,6 +68,7 @@ class Transit(object):
         # list of tuples of (endpoint, client)
         self.client_facing_endpoints = []
         self.pair = None
+        self.internal_tunnel = internal_tunnel
 
     # returns endpoint that the client should tunnel to
     def add_client(self, client):

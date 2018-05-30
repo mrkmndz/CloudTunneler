@@ -20,12 +20,17 @@ def main():
         if_name = endpoint.realize(me.private_ip_a)
         call("sudo ip route add %s dev %s" % (client.private_ip, if_name), shell=True) 
     
-    transit_if_name = me.transit_facing_endpoint.realize(me.private_ip_b)
-    for endpoint, client in me.pair.client_facing_endpoints:
-        call("sudo ip route add %s dev %s" % (client.private_ip, transit_if_name), shell=True) 
+    if me.internal_tunnel:
+        transit_if_name = me.transit_facing_endpoint.realize(me.private_ip_b)
+        for endpoint, client in me.pair.client_facing_endpoints:
+            call("sudo ip route add %s dev %s" % (client.private_ip, transit_if_name), shell=True) 
 
-    call("sudo ip route add %s dev %s" % (me.pair.private_ip_a, transit_if_name), shell=True) 
-    call("sudo ip route add %s dev %s" % (me.pair.private_ip_b, transit_if_name), shell=True) 
+        call("sudo ip route add %s dev %s" % (me.pair.private_ip_a, transit_if_name), shell=True) 
+        call("sudo ip route add %s dev %s" % (me.pair.private_ip_b, transit_if_name), shell=True) 
+    else:
+        for endpoint, client in me.pair.client_facing_endpoints:
+            call("sudo ip route add %s via %s" % (client.private_ip, me.pair.vpc_ip), shell=True) 
+        call("sudo ip route add %s via %s" % (me.pair.private_ip_a, me.pair.vpc_ip), shell=True) 
 
     sys.stdout.close()
     sys.stderr.close()
