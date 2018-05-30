@@ -29,7 +29,7 @@
     {
         "from": "oregon",
         "to": "london",
-        "width": 4,
+        "width": 1,
         "internal_tunnel": false
     }
     ]
