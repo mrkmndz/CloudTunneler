@@ -36,7 +36,7 @@ class GCPController(object):
 
     def add_route(self, name, tags, priority, destinationCIDR, nextHopIp):
         body = {"name": name, "tags": tags, "priority": priority, "destRange": destinationCIDR, "nextHopIp": nextHopIp}
-        operation = self.routes().insert(project=self.project, body=body).execute()
+        operation = self.compute.routes().insert(project=self.project, body=body).execute()
         self.wait_for_global_operation(operation["name"])
 
     def add_instance_to_pool(self, instance_self_link, pool_name, region):

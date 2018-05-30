@@ -88,7 +88,8 @@ def main(config_file):
             instance_name = "%s-%d-transit" % (node.name, i)
             if not transit.internal_tunnel:
                 for endpoint, client in transit.pair.client_facing_endpoints:
-                    name = "%s-to-%s" % (instance_name, client.private_ip)
+                    sanitized_ip = client.private_ip.replace(".","-")
+                    name = "%s-to-%s" % (instance_name, sanitized_ip)
                     cidr = "%s/32" % client.private_ip
                     nhip = transit.pair.vpc_ip
                     gcp.add_route(name, [instance_name], 2003, cidr, nhip)
