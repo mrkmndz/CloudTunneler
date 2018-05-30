@@ -10,11 +10,22 @@ def main(config_file):
         config = json.load(f)
     gcp = GCPController(config["project"])
     nodes = [Node(x) for x in config["nodes"]]
+    # tuples of region or zone and operation
+    region_operations = []
+    zone_operations = []
     for node in nodes:
         # delete ip address
-        gcp.delete_all(gcp.compute.addresses(), "address", node.region)
+        region_ops = gcp.delete_all(gcp.compute.addresses(), "address", node.region)
+        region_operations.append((node.region, region_ops))
         # delete instances
-        gcp.delete_all_instances(node.zone)
+        zone_ops = gcp.delete_all_instances(node.zone)
+        zone_operations.append((node.zone, zone_ops))
+    for region, ops in region_operations:
+        for operation in ops:
+            gcp.wait_for_region_operation(region, operation["name"])
+    for zone, ops in zone_operations:
+        for operation in ops:
+            gcp.wait_for_zone_operation(zone, operation["name"])
     build_dir = os.path.join(os.path.dirname(__file__), config["name"] + "-build")
     call("rm -rf " + build_dir, shell=True)   
 

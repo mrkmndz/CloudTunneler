@@ -16,21 +16,23 @@ class GCPController(object):
 
     def delete_all(self, compute_resource, compute_resource_name, region):
         resp = compute_resource.list(project=self.project, region=region).execute()
+        operations = []
         if "items" in resp:
             for item in resp["items"]:
                 print "deleting", compute_resource_name, item["name"]
                 args = {compute_resource_name: item["name"], "project": self.project, "region": region}
-                operation = compute_resource.delete(**args).execute()
-                self.wait_for_region_operation(region, operation["name"])
+                operations.append(compute_resource.delete(**args).execute())
+        return operations
 
     def delete_all_instances(self, zone):
         resp = self.compute.instances().list(project=self.project, zone=zone).execute()
+        operations = []
         if "items" in resp:
             for item in resp["items"]:
                 print "deleting instance", item["name"]
                 args = {"instance": item["name"], "project": self.project, "zone": zone}
-                operation = self.compute.instances().delete(**args).execute()
-                self.wait_for_zone_operation(zone, operation["name"])
+                operations.append(self.compute.instances().delete(**args).execute())
+        return operations
 
     def add_instance_to_pool(self, instance_self_link, pool_name, region):
         body = {"instances": [{"instance": instance_self_link}]}
