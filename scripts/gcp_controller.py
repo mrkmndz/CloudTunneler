@@ -40,6 +40,8 @@ class GCPController(object):
         operations = []
         if "items" in resp:
             for item in resp["items"]:
+                if "controller" in item["name"] or "client" in item["name"]:
+                    continue
                 print "deleting instance", item["name"]
                 args = {"instance": item["name"], "project": self.project, "zone": zone}
                 operations.append(self.compute.instances().delete(**args).execute())
