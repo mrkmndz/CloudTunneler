@@ -1,11 +1,11 @@
 {
-    "name": "oregon-london-tunnel",
+    "name": "central-east-tunnel",
     "project": "cloudtunneler",
     "nodes": [
     {
-        "name": "oregon",
-        "region": "us-west1",
-        "zone": "us-west1-a",
+        "name": "central",
+        "region": "us-central1",
+        "zone": "us-central1-b",
         "clients": [
         {
             "private_ip": "192.168.1.37",
@@ -14,22 +14,22 @@
         ]
     },
     {
-        "name": "oregon2",
-        "region": "us-west1",
-        "zone": "us-west1-b",
+        "name": "east",
+        "region": "us-east1",
+        "zone": "us-east1-b",
         "clients": [
         {
             "private_ip": "192.168.2.42",
-            "public_ip": "35.230.23.208"
+            "public_ip": "35.203.100.2"
         }
         ]
     }
     ],
     "edges": [
     {
-        "from": "oregon",
-        "to": "oregon2",
-        "width": 2,
+        "from": "central",
+        "to": "east",
+        "width": 1,
         "internal_tunnel": false
     }
     ]
