@@ -9,7 +9,7 @@
         "clients": [
         {
             "private_ip": "192.168.1.37",
-            "public_ip": "35.233.191.140"
+            "public_ip": "35.233.199.245"
         }
         ]
     },
@@ -20,7 +20,7 @@
         "clients": [
         {
             "private_ip": "192.168.2.42",
-            "public_ip": "35.233.206.215"
+            "public_ip": "35.230.23.208"
         }
         ]
     }
@@ -29,7 +29,7 @@
     {
         "from": "oregon",
         "to": "oregon2",
-        "width": 1,
+        "width": 2,
         "internal_tunnel": false
     }
     ]
