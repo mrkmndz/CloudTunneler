@@ -99,7 +99,7 @@ def main(config_file):
                                                     transit.vpc_ip,
                                                     transit.client_facing_ip,
                                                     "preppedv2",
-                                                    2,
+                                                    4,
                                                     "startup-script.bash",
                                                     {"me": serialized}))
         for operation in operations:
