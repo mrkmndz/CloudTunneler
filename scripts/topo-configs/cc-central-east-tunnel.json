@@ -9,7 +9,7 @@
         "clients": [
         {
             "private_ip": "192.168.1.37",
-            "public_ip": "35.185.205.65"
+            "public_ip": "35.233.163.28"
         }
         ]
     },
@@ -29,7 +29,7 @@
     {
         "from": "central",
         "to": "east",
-        "width": 2,
+        "width": 3,
         "internal_tunnel": false
     }
     ]
