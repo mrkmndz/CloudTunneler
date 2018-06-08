@@ -29,7 +29,7 @@
     {
         "from": "central",
         "to": "east",
-        "width": 4,
+        "width": 5,
         "internal_tunnel": false
     }
     ]
