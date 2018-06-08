@@ -1,5 +1,5 @@
 {
-    "name": "central-east-tunnel",
+    "name": "uscentral-europe-tunnel",
     "project": "proj-204902",
     "nodes": [
     {
@@ -15,12 +15,12 @@
     },
     {
         "name": "east",
-        "region": "us-east1",
-        "zone": "us-east1-b",
+        "region": "europe-west2",
+        "zone": "europe-west2-b",
         "clients": [
         {
             "private_ip": "192.168.2.42",
-            "public_ip": "10.162.0.2"
+            "public_ip": "10.154.0.2"
         }
         ]
     }

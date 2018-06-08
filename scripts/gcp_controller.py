@@ -6,7 +6,7 @@ import googleapiclient.discovery
 from six.moves import input
 from pprint import pprint
 import subprocess
-from util import *
+# from util import *
 
 ip_idx = 0
 class GCPController(object):

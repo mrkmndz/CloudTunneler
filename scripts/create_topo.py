@@ -98,7 +98,7 @@ def main(config_file):
                                                     instance_name,
                                                     transit.vpc_ip,
                                                     transit.client_facing_ip,
-                                                    "preppedv3",
+                                                    "prepped",
                                                     4,
                                                     "startup-script.bash",
                                                     {"me": serialized}))
