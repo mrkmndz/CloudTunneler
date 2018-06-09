@@ -1,0 +1,36 @@
+{
+    "name": "uswest-europe-tunnel",
+    "project": "proj-204902",
+    "nodes": [
+    {
+        "name": "uswest",
+        "region": "us-west1",
+        "zone": "us-west1-b",
+        "clients": [
+        {
+            "private_ip": "192.168.1.37",
+            "public_ip": "10.138.0.3"
+        }
+        ]
+    },
+    {
+        "name": "europe",
+        "region": "europe-west2",
+        "zone": "europe-west2-b",
+        "clients": [
+        {
+            "private_ip": "192.168.2.42",
+            "public_ip": "10.154.0.2"
+        }
+        ]
+    }
+    ],
+    "edges": [
+    {
+        "from": "uswest",
+        "to": "europe",
+        "width": 6,
+        "internal_tunnel": false
+    }
+    ]
+}
